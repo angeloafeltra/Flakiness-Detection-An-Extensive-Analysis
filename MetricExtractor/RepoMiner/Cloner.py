@@ -5,7 +5,7 @@ import os
 class Cloner:
 
     def __init__(self):
-        self.path_folder='/Users/angeloafeltra/Documents/GitHub/Flakiness-Detection-An-Extensive-Analysis/MetricExtractor/spazioCondiviso'
+        self.path_folder='/Users/angeloafeltra/Documents/GitHub/Flakiness-Detection-An-Extensive-Analysis/MetricExtractor/spazioCondiviso/Repository'
 
 
     def clone_repository(self,repository,gitURL, gitSSH):

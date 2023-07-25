@@ -1,7 +1,9 @@
-from pprint import pprint
+from time import sleep
 
 import pandas
+from tqdm import tqdm
 import sys
+import requests
 
 from Cloner import Cloner
 
@@ -56,8 +58,21 @@ if __name__ == "__main__":
     #Itero su ogni repository presente nel dataframe
     cloner=Cloner()
     i=0
-    for repository,url,sha,listTF,listTNF in zip(repositories['Nome'],repositories['URL'],repositories['SHA'],repositories['Lista_TF'],repositories['Lista_TNF']):
+    for repository,url,sha,listTF,listTNF,_ in zip(repositories['Nome'],
+                                                 repositories['URL'],
+                                                 repositories['SHA'],
+                                                 repositories['Lista_TF'],
+                                                 repositories['Lista_TNF'],
+                                                 tqdm(range(len(repositories['Nome'])-1),desc='Cloning..')):
         if i<2:
-            cloner.clone_repository(repository,url,sha)
+            #cloner.clone_repository(repository,url,sha)
+            PARAMS = {'repositoryName':'{}_{}'.format(repository,sha)}
+            r=requests.get("http://localhost:8080/getFlakinessMetrics",params=PARAMS)
+            result=r.text
+            print(result)
             i=i+1
+
+        sleep(0.1)
+
+
 
