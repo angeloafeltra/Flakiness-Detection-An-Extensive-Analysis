@@ -9,15 +9,17 @@ class Cloner:
 
 
     def clone_repository(self,repository,gitURL, gitSSH):
-
-        print("STO CLONANDO LA REPOSITORY {}".format(repository))
         try:
             path_folder_repo=os.path.join(self.path_folder,'{}_{}'.format(repository,gitSSH))
-            Repo.clone_from(gitURL,path_folder_repo)
-            gr=Git(path_folder_repo)
-            gr.checkout(gitSSH)
+            if not self.repositoryExist(path_folder_repo):
+                Repo.clone_from(gitURL,path_folder_repo)
+                gr=Git(path_folder_repo)
+                gr.checkout(gitSSH)
         except Exception as e:
-            print(e)
             return False
 
         return True
+
+    def repositoryExist(self,path_folder_repo):
+        isExist=os.path.exists(path_folder_repo)
+        return isExist

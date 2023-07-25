@@ -1,11 +1,12 @@
 from time import sleep
 
 import pandas
-from tqdm import tqdm
+from tqdm import trange
 import sys
 import requests
 
 from Cloner import Cloner
+from DatasetGenerator import DatasetGenerator
 
 if __name__ == "__main__":
 
@@ -17,10 +18,7 @@ if __name__ == "__main__":
         "Lista_TNF": []
     }
 
-    #df=pandas.read_csv(sys.argv[1])
     df=pandas.read_csv('/Users/angeloafeltra/Documents/GitHub/Flakiness-Detection-An-Extensive-Analysis/ListaTestFlaky/FlakeFlagger.csv',delimiter=';')
-
-    print(df.info())#Da Cancellare
 
     for url,sha in zip(df['Project URL'],df['SHA Detected']):
         repoName=url.split('/')[-1]
@@ -37,42 +35,41 @@ if __name__ == "__main__":
         listTF=repositories['Lista_TF'][index_sha]
         listTNF=repositories['Lista_TNF'][index_sha]
 
+        test=row[df.columns[2]].replace('#','.')
+
         if 'IsFlaky' in df.columns:
+
             if row['IsFlaky']==0:
-                listTNF.append(row[df.columns[2]])
+                listTNF.append(test)
             else:
-                listTF.append(row[df.columns[2]])
+                listTF.append(test)
         else:
-            listTF.append(row[df.columns[2]])
+            listTF.append(test)
 
-    '''
-    counterTF=0
-    counterTNF=0
-    for repo,SHA,listTF,listTNF in zip(repositories['Nome'],repositories['SHA'],repositories['Lista_TF'],repositories['Lista_TNF']):
-        counterTF=counterTF+len(listTF)
-        counterTNF=counterTNF+len(listTNF)
-        print('{} : {} : TF={} : TNF={}'.format(repo,SHA,len(listTF),len(listTNF)))
 
-    print("Numero Test Flaky: {}\nNumero Test Non Flaky:{}".format(counterTF,counterTNF))
-    '''
     #Itero su ogni repository presente nel dataframe
     cloner=Cloner()
-    i=0
+    datasetGeneretor=DatasetGenerator()
+    datasetGeneretor.createDataset("FlakeFlagger")
+    progressbar=trange(len(repositories['Nome'])-1,desc='Cloning..',leave=True)
     for repository,url,sha,listTF,listTNF,_ in zip(repositories['Nome'],
                                                  repositories['URL'],
                                                  repositories['SHA'],
                                                  repositories['Lista_TF'],
                                                  repositories['Lista_TNF'],
-                                                 tqdm(range(len(repositories['Nome'])-1),desc='Cloning..')):
-        if i<2:
-            #cloner.clone_repository(repository,url,sha)
-            PARAMS = {'repositoryName':'{}_{}'.format(repository,sha)}
-            r=requests.get("http://localhost:8080/getFlakinessMetrics",params=PARAMS)
-            result=r.text
-            print(result)
-            i=i+1
+                                                 progressbar):
 
-        sleep(0.1)
+        progressbar.set_description("Cloning {}_{}".format(repository,sha))
+        progressbar.refresh()
+        cloner.clone_repository(repository,url,sha)
+        progressbar.set_description("Metrics Extract {}_{}".format(repository,sha))
+        progressbar.refresh()
+        PARAMS = {'repositoryName':'{}_{}'.format(repository,sha)}
+        r=requests.get("http://localhost:8080/getFlakinessMetrics",params=PARAMS)
+        progressbar.set_description("Generate Dataset {}_{}".format(repository,sha))
+        progressbar.refresh()
+        datasetGeneretor.addRepositoryToDataset('{}_{}'.format(repository,sha),listTF,listTNF)
+
 
 
 

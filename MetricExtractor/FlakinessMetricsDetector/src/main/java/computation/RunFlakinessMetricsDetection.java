@@ -41,7 +41,7 @@ public class RunFlakinessMetricsDetection {
 		try {
 			String output = "nameProject,testCase,tloc,tmcCabe,assertionDensity,assertionRoulette,mysteryGuest,eagerTest,sensitiveEquality,resourceOptimism,"+
 					"conditionalTestLogic,fireAndForget,testRunWar,loc,lcom2,lcom5,cbo,wmc,rfc,mpc,halsteadVocabulary,halsteadLength,halsteadVolume,classDataShouldBePrivate,"+
-					"complexClass,functionalDecomposition,godClass,spaghettiCode,productionClass,testMethod\n";
+					"complexClass,functionalDecomposition,godClass,spaghettiCode\n";
 			String outputFile = "/Users/angeloafeltra/Documents/GitHub/Flakiness-Detection-An-Extensive-Analysis/MetricExtractor/spazioCondiviso/MetricsDetector/"+repositoryName;
 
 			String outputReject="nameProject,testCase\n";
@@ -93,8 +93,7 @@ public class RunFlakinessMetricsDetection {
 				double halsteadVocabulary = CKMetrics.getHalsteadVocabulary(productionClass);
 				double halsteadLength = CKMetrics.getHalsteadLenght(productionClass);
 				double halsteadVolume = CKMetrics.getHalsteadVolume(productionClass);
-				String productionClassTxt=productionClass.getTextContent().replace("\n","\\n");
-				System.out.println(productionClassTxt);
+				//String productionClassTxt=productionClass.getTextContent().replace("\n","\\n");
 
 				for(MethodBean testCase: classBean.getMethods()) {
 
@@ -113,7 +112,7 @@ public class RunFlakinessMetricsDetection {
 					double isConditionalTestLogic = conditionalTestLogic.isConditionalTestLogic(testCase);
 					double isFireAndForget = fireAndForget.isFireAndForget(testCase);
 					double isTestRunWar = testRunWar.isTestRunWar(testCase);
-					String testMethod=testCase.getTextContent().replace("\n","\\n");
+					//String testMethod=testCase.getTextContent().replace("\n","\\n");
 
 
 
@@ -124,7 +123,7 @@ public class RunFlakinessMetricsDetection {
 							+ loc + "," + lcom2 + "," + lcom5 + "," + cbo
 							+ "," + wmc + "," + rfc + "," + mpc + "," + halsteadVocabulary + "," + halsteadLength + "," + halsteadVolume
 							+ "," + isClassDataShouldBePrivate + "," + isComplexClass + "," + isFunctionalDecomposition
-							+ "," + isGodClass + "," + isSpaghettiCode + "," + productionClassTxt + "," + testMethod + "\n";
+							+ "," + isGodClass + "," + isSpaghettiCode + "\n";
 				}
 			}
 			FileUtility.writeFile(outputReject,outputProjectReject);
