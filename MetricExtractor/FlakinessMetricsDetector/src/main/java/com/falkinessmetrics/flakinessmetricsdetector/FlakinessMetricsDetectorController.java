@@ -22,7 +22,7 @@ import java.io.File;
         System.out.println("Instanzio il metrics detector");
         RunFlakinessMetricsDetection detector=new RunFlakinessMetricsDetection();
 
-        if (!file.exists()) {
+        if (!file.exists() && !repositoryName.equals("activiti_b11f757a")) {
             System.out.println("Estraggo le Metriche");
             result = detector.getMetrics(repositoryName);
         }else{
