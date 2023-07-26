@@ -3,7 +3,8 @@ services:
   repo_miner:
     container_name: repo_miner
     image: angeloafeltra/metricsextractor:repo_miner
-    command: /bin/bash
+    stdin_open: true 
+    tty: true
     depends_on:
       - flakiness_metrics_detector
 
