@@ -16,7 +16,8 @@ import java.io.File;
         System.out.println("Richiesta ricevuta Estrazione Metriche ricevuta");
 
         boolean result=true;
-        String metricRepository = "./spazioCondiviso/MetricsDetector/"+repositoryName;
+        String metricRepository = "../spazioCondiviso/MetricsDetector/"+repositoryName; //Da Utilizzare se non si passa per docker
+        //String metricRepository = "./spazioCondiviso/MetricsDetector/"+repositoryName;
         File file = new File(metricRepository);
         System.out.println("Instanzio il metrics detector");
         RunFlakinessMetricsDetection detector=new RunFlakinessMetricsDetection();

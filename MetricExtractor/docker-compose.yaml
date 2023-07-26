@@ -6,7 +6,7 @@ services:
     stdin_open: true 
     tty: true
     volumes: 
-      - shared-data:/RepoMiner/spazioCondiviso
+      - shared-data:/spazioCondiviso
     depends_on:
       - flakinessmetricsdetector
 
@@ -16,7 +16,7 @@ services:
     ports:
       - 8080
     volumes: 
-      - shared-data:/FlakinessMetricsDetector/spazioCondiviso
+      - shared-data:/spazioCondiviso
 
 
 volumes:

@@ -9,10 +9,10 @@ COPY lib ./lib
 COPY src ./src
 
 
-RUN mkdir -p ./spazioCondiviso
-RUN mkdir -p ./spazioCondiviso/Dataset
-RUN mkdir -p ./spazioCondiviso/MetricsDetector
-RUN mkdir -p ./spazioCondiviso/Repository
+RUN mkdir -p ../spazioCondiviso
+RUN mkdir -p ../spazioCondiviso/Dataset
+RUN mkdir -p ../spazioCondiviso/MetricsDetector
+RUN mkdir -p ../spazioCondiviso/Repository
 
 
 
