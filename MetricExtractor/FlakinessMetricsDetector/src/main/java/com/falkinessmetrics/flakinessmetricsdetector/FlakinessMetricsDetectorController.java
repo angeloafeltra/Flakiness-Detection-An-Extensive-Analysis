@@ -2,7 +2,6 @@ package com.falkinessmetrics.flakinessmetricsdetector;
 
 import computation.RunFlakinessMetricsDetection;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import java.io.File;
@@ -10,18 +9,16 @@ import java.io.File;
 @RestController
  public class FlakinessMetricsDetectorController {
 
-    private RunFlakinessMetricsDetection detector=new RunFlakinessMetricsDetection();
+
     @GetMapping(path = "/getFlakinessMetrics")
     public boolean getFlakinessMetrics(@RequestParam String repositoryName){
 
         boolean result=true;
         String metricRepository = "/Users/angeloafeltra/Documents/GitHub/Flakiness-Detection-An-Extensive-Analysis/MetricExtractor/spazioCondiviso/MetricsDetector/"+repositoryName;
         File file = new File(metricRepository);
-        if (!file.exists()) {
-            System.out.println("Metriche da estrarre");
+        RunFlakinessMetricsDetection detector=new RunFlakinessMetricsDetection();
+        if (!file.exists())
             result = detector.getMetrics(repositoryName);
-        }else
-            System.out.println("Metriche gia estratte");
 
         return result;
     }

@@ -1,5 +1,3 @@
-from time import sleep
-
 import pandas
 from tqdm import trange
 import sys
@@ -10,6 +8,13 @@ from DatasetGenerator import DatasetGenerator
 
 if __name__ == "__main__":
 
+    if len(sys.argv)<3:
+        print("Specificare csv e nome dataset da creare nella chiamata del main")
+        exit()
+
+    path_csv=sys.argv[1]
+    name_dataset=sys.argv[2]
+
     repositories={
         "Nome": [],
         "URL": [],
@@ -18,7 +23,7 @@ if __name__ == "__main__":
         "Lista_TNF": []
     }
 
-    df=pandas.read_csv('/Users/angeloafeltra/Documents/GitHub/Flakiness-Detection-An-Extensive-Analysis/ListaTestFlaky/FlakeFlagger.csv',delimiter=';')
+    df=pandas.read_csv(path_csv,delimiter=';')
 
     for url,sha in zip(df['Project URL'],df['SHA Detected']):
         repoName=url.split('/')[-1]
@@ -50,14 +55,14 @@ if __name__ == "__main__":
     #Itero su ogni repository presente nel dataframe
     cloner=Cloner()
     datasetGeneretor=DatasetGenerator()
-    datasetGeneretor.createDataset("FlakeFlagger")
+    datasetGeneretor.createDataset(name_dataset)
     progressbar=trange(len(repositories['Nome'])-1,desc='Cloning..',leave=True)
     for repository,url,sha,listTF,listTNF,_ in zip(repositories['Nome'],
-                                                 repositories['URL'],
-                                                 repositories['SHA'],
-                                                 repositories['Lista_TF'],
-                                                 repositories['Lista_TNF'],
-                                                 progressbar):
+                                                    repositories['URL'],
+                                                    repositories['SHA'],
+                                                    repositories['Lista_TF'],
+                                                    repositories['Lista_TNF'],
+                                                    progressbar):
 
         progressbar.set_description("Cloning {}_{}".format(repository,sha))
         progressbar.refresh()
@@ -65,10 +70,17 @@ if __name__ == "__main__":
         progressbar.set_description("Metrics Extract {}_{}".format(repository,sha))
         progressbar.refresh()
         PARAMS = {'repositoryName':'{}_{}'.format(repository,sha)}
-        r=requests.get("http://localhost:8080/getFlakinessMetrics",params=PARAMS)
-        progressbar.set_description("Generate Dataset {}_{}".format(repository,sha))
-        progressbar.refresh()
-        datasetGeneretor.addRepositoryToDataset('{}_{}'.format(repository,sha),listTF,listTNF)
+        try:
+            r=requests.get("http://localhost:8080/getFlakinessMetrics",params=PARAMS)
+            progressbar.set_description("Generate Dataset {}_{}".format(repository,sha))
+            progressbar.refresh()
+            datasetGeneretor.addRepositoryToDataset('{}_{}'.format(repository,sha),listTF,listTNF)
+        except Exception as e:
+            progressbar.set_description("Errore di comunicazione col metricsDetector")
+            progressbar.refresh()
+            continue
+
+
 
 
 
