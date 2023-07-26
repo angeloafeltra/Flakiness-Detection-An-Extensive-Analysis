@@ -5,6 +5,8 @@ services:
     image: angeloafeltra/metricsextractor:repo_miner
     stdin_open: true 
     tty: true
+    volumes: 
+      - shared-volume:/usr/src/app/public/spazioCondiviso
     depends_on:
       - flakiness_metrics_detector
 
@@ -13,5 +15,10 @@ services:
     image: angeloafeltra/metricsextractor:flakiness_metrics_detector
     ports:
       - 8080
+    volumes: 
+      - shared-volume:/usr/src/app/public/spazioCondiviso
+
+volumes:
+  shared-volume
 
 
