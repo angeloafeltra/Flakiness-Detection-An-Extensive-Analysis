@@ -5,6 +5,7 @@ COPY .mvn ./.mvn
 COPY mvnw pom.xml ./
 COPY lib ./lib
 COPY src ./src
+COPY spazioCondiviso ./spazioCondiviso
 
 
 RUN ./mvnw dependency:resolve
