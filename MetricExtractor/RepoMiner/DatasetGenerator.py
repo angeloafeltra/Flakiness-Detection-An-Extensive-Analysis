@@ -8,7 +8,7 @@ class DatasetGenerator:
 
     def createDataset(self,datasetName):
         self.datasetName=datasetName;
-        self.pathDataset=os.path.join("/Users/angeloafeltra/Documents/GitHub/Flakiness-Detection-An-Extensive-Analysis/MetricExtractor/spazioCondiviso/Dataset/",
+        self.pathDataset=os.path.join("/spazioCondiviso/Dataset/",
                                 '{}.csv'.format(datasetName))
         if not os.path.exists(self.pathDataset):
             df = pd.DataFrame(columns=['nameProject', 'testCase', 'tloc', 'tmcCabe',
@@ -39,7 +39,7 @@ class DatasetGenerator:
         return False
 
     def labellingRepositoryCSV(self,repsitory,listTestFlaky,listTestNonFlaky):
-        pathDataset=os.path.join("/Users/angeloafeltra/Documents/GitHub/Flakiness-Detection-An-Extensive-Analysis/MetricExtractor/spazioCondiviso/MetricsDetector/",
+        pathDataset=os.path.join("/spazioCondiviso/MetricsDetector/",
                                 '{}'.format(repsitory))
         df=pd.read_csv(pathDataset)
         if len(listTestNonFlaky)==0:
