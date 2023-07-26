@@ -37,6 +37,8 @@ public class RunFlakinessMetricsDetection {
 		SpaghettiCodeRule spaghettiCode = new SpaghettiCodeRule();
 
 		File project = new File(pathRepository);
+		if (!project.exists())
+			return false;
 
 		try {
 			String output = "nameProject,testCase,tloc,tmcCabe,assertionDensity,assertionRoulette,mysteryGuest,eagerTest,sensitiveEquality,resourceOptimism,"+

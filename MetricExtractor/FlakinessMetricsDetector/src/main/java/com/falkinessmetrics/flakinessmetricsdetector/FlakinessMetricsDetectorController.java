@@ -13,6 +13,8 @@ import java.io.File;
     @GetMapping(path = "/getFlakinessMetrics")
     public boolean getFlakinessMetrics(@RequestParam String repositoryName){
 
+        System.out.println("Richiesta ricevuta");
+
         boolean result=true;
         String metricRepository = ".spazioCondiviso/MetricsDetector/"+repositoryName;
         File file = new File(metricRepository);
