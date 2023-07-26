@@ -2,7 +2,7 @@ FROM eclipse-temurin:17-jdk-jammy
 
 WORKDIR /FlakinessMetricsDetector
 COPY .mvn ./.mvn
-COPY mvnw pom.xml mvnw.cmd ./
+COPY mvnw pom.xml ./
 COPY lib ./lib
 COPY src ./src
 
