@@ -8,10 +8,10 @@ services:
     volumes: 
       - shared-data:/RepoMiner/spazioCondiviso
     depends_on:
-      - flakiness_metrics_detector
+      - flakinessmetricsdetector
 
   flakiness_metrics_detector:
-    container_name: flakiness_metrics_detector
+    container_name: flakinessmetricsdetector
     image: angeloafeltra/metricsextractor:flakiness_metrics_detector
     ports:
       - 8080
