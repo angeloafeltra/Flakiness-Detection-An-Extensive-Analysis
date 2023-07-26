@@ -53,4 +53,5 @@ dkms.conf
 
 MetricExtractor/spazioCondiviso/Repository/**
 MetricExtractor/spazioCondiviso/MetricsDetector/**
-.DS_Store
+*.DS_Store
+MetricExtractor/RepoMiner/__pycache__
