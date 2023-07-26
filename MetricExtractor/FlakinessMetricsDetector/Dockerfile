@@ -1,4 +1,4 @@
-FROM penjdk:17-alpine
+FROM openjdk:17-alpine
 
 
 
