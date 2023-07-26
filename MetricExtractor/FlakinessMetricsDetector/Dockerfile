@@ -5,7 +5,13 @@ COPY .mvn ./.mvn
 COPY mvnw pom.xml ./
 COPY lib ./lib
 COPY src ./src
-COPY spazioCondiviso ./spazioCondiviso
+
+
+RUN mkdir -p ./spazioCondiviso
+RUN mkdir -p ./spazioCondiviso/Dataset
+RUN mkdir -p ./spazioCondiviso/MetricsDetector
+RUN mkdir -p ./spazioCondiviso/Repository
+
 
 
 RUN ./mvnw dependency:resolve
