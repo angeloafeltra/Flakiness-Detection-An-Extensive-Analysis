@@ -13,14 +13,18 @@ import java.io.File;
     @GetMapping(path = "/getFlakinessMetrics")
     public boolean getFlakinessMetrics(@RequestParam String repositoryName){
 
-        System.out.println("Richiesta ricevuta");
+        System.out.println("Richiesta ricevuta Estrazione Metriche ricevuta");
 
         boolean result=true;
         String metricRepository = "./spazioCondiviso/MetricsDetector/"+repositoryName;
         File file = new File(metricRepository);
         RunFlakinessMetricsDetection detector=new RunFlakinessMetricsDetection();
-        if (!file.exists())
+        if (!file.exists()) {
+            System.out.println("Estraggo le Metriche");
             result = detector.getMetrics(repositoryName);
+        }else{
+            System.out.println("Metriche gia estratte");
+        }
 
         return result;
     }
@@ -29,7 +33,6 @@ import java.io.File;
     @GetMapping(path = "/testConnection")
     public String listenMessage(){
         return "Messaggio ricevuto e ricambiato";
-
     }
 
 
