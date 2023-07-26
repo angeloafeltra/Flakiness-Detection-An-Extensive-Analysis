@@ -72,7 +72,7 @@ if __name__ == "__main__":
         PARAMS = {'repositoryName':'{}_{}'.format(repository,sha)}
         try:
             #r=requests.get("http://localhost:8080/getFlakinessMetrics",params=PARAMS) #Da utilizzare se non si passa per docker
-            r=requests.get("http://flakinessmetricsdetector:8080/getFlakinessMetrics",params=PARAMS)
+            r=requests.get("http://flakinessmetricsdetector:8080/getFlakinessMetrics",params=PARAMS,timeout=300)
             progressbar.set_description("Generate Dataset {}_{}".format(repository,sha))
             progressbar.refresh()
             datasetGeneretor.addRepositoryToDataset('{}_{}'.format(repository,sha),listTF,listTNF)
