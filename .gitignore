@@ -53,3 +53,4 @@ dkms.conf
 
 MetricExtractor/spazioCondiviso/Repository/**
 MetricExtractor/spazioCondiviso/MetricsDetector/**
+.DS_Store
