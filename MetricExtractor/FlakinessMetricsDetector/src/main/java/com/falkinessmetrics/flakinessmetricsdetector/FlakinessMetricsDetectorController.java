@@ -16,7 +16,7 @@ import java.io.File;
         System.out.println("Richiesta ricevuta");
 
         boolean result=true;
-        String metricRepository = ".spazioCondiviso/MetricsDetector/"+repositoryName;
+        String metricRepository = "./spazioCondiviso/MetricsDetector/"+repositoryName;
         File file = new File(metricRepository);
         RunFlakinessMetricsDetection detector=new RunFlakinessMetricsDetection();
         if (!file.exists())
