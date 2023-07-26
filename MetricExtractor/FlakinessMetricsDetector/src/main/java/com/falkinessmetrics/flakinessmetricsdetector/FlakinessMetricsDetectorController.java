@@ -18,7 +18,9 @@ import java.io.File;
         boolean result=true;
         String metricRepository = "./spazioCondiviso/MetricsDetector/"+repositoryName;
         File file = new File(metricRepository);
+        System.out.println("Instanzio il metrics detector");
         RunFlakinessMetricsDetection detector=new RunFlakinessMetricsDetection();
+
         if (!file.exists()) {
             System.out.println("Estraggo le Metriche");
             result = detector.getMetrics(repositoryName);
