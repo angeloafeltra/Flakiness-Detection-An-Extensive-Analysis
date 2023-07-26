@@ -10,7 +10,7 @@ services:
     depends_on:
       - flakinessmetricsdetector
 
-  flakiness_metrics_detector:
+  flakinessmetricsdetector:
     container_name: flakinessmetricsdetector
     image: angeloafeltra/metricsextractor:flakiness_metrics_detector
     ports:
