@@ -16,7 +16,7 @@ services:
     ports:
       - 8080
     volumes: 
-      - shared-volume:./spazioCondiviso
+      - shared-volume:./spazioCondiviso/metricsDetector
 
 volumes:
   shared-volume
