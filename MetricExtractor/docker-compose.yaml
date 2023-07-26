@@ -6,7 +6,7 @@ services:
     stdin_open: true 
     tty: true
     volumes: 
-      - shared-volume:/usr/src/app/public/spazioCondiviso
+      - shared-volume:./spazioCondiviso
     depends_on:
       - flakiness_metrics_detector
 
@@ -16,7 +16,7 @@ services:
     ports:
       - 8080
     volumes: 
-      - shared-volume:/usr/src/app/public/spazioCondiviso
+      - shared-volume:./spazioCondiviso
 
 volumes:
   shared-volume
