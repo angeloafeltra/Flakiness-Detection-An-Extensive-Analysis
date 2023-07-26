@@ -53,11 +53,9 @@
         </dependency>
 
         <dependency>
-            <groupId>org.eclipse.core.runtime</groupId>
-            <artifactId>eclipse_core_runtime</artifactId>
-            <version>1.0</version>
-            <scope>system</scope>
-            <systemPath>${project.basedir}/lib/org.eclipse.core.runtime-3.1.0-2.jar</systemPath>
+            <groupId>org.eclipse.platform</groupId>
+            <artifactId>org.eclipse.core.runtime</artifactId>
+            <version>3.27.0</version>
         </dependency>
 
         <dependency>

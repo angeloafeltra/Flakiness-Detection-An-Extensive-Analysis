@@ -2,10 +2,10 @@ package computation;
 
 import bean.*;
 import metrics.*;
-import org.eclipse.core.runtime.CoreException;
+
 import smellDetector.*;
 import testSmellDetector.*;
-
+import org.eclipse.core.runtime.*;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Vector;

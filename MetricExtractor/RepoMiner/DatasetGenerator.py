@@ -29,6 +29,7 @@ class DatasetGenerator:
         if not self.repositoryExistInDataset(repository):
             df_repository=self.labellingRepositoryCSV(repository,listTestFlaky,listTestNonFlaky)
             df = pd.concat([df, df_repository])
+            df.reset_index(drop=True)
             df.to_csv(self.pathDataset,index=False)
 
 
