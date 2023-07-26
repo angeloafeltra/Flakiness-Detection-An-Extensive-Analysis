@@ -71,7 +71,7 @@ if __name__ == "__main__":
         progressbar.refresh()
         PARAMS = {'repositoryName':'{}_{}'.format(repository,sha)}
         try:
-            r=requests.get("http://localhost:8080/getFlakinessMetrics",params=PARAMS)
+            r=requests.get("http://flakiness_metrics_detector:8080/getFlakinessMetrics",params=PARAMS)
             progressbar.set_description("Generate Dataset {}_{}".format(repository,sha))
             progressbar.refresh()
             datasetGeneretor.addRepositoryToDataset('{}_{}'.format(repository,sha),listTF,listTNF)
