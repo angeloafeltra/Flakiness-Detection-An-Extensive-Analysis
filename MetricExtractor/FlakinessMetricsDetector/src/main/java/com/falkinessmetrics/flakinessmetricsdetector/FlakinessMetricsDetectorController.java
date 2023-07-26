@@ -14,7 +14,7 @@ import java.io.File;
     public boolean getFlakinessMetrics(@RequestParam String repositoryName){
 
         boolean result=true;
-        String metricRepository = "/Users/angeloafeltra/Documents/GitHub/Flakiness-Detection-An-Extensive-Analysis/MetricExtractor/spazioCondiviso/MetricsDetector/"+repositoryName;
+        String metricRepository = ".spazioCondiviso/MetricsDetector/"+repositoryName;
         File file = new File(metricRepository);
         RunFlakinessMetricsDetection detector=new RunFlakinessMetricsDetection();
         if (!file.exists())

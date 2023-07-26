@@ -71,6 +71,7 @@ if __name__ == "__main__":
         progressbar.refresh()
         PARAMS = {'repositoryName':'{}_{}'.format(repository,sha)}
         try:
+            #r=requests.get("http://localhost:8080/getFlakinessMetrics",params=PARAMS) Da utilizzare se non si passa per docker
             r=requests.get("http://flakiness_metrics_detector:8080/getFlakinessMetrics",params=PARAMS)
             progressbar.set_description("Generate Dataset {}_{}".format(repository,sha))
             progressbar.refresh()

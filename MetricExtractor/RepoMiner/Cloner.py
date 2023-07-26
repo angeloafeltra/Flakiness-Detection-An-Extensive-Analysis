@@ -5,7 +5,7 @@ import os
 class Cloner:
 
     def __init__(self):
-        self.path_folder='/spazioCondiviso/Repository'
+        self.path_folder='./spazioCondiviso/Repository'
 
 
     def clone_repository(self,repository,gitURL, gitSSH):

@@ -16,7 +16,7 @@ public class RunFlakinessMetricsDetection {
 
 	public boolean getMetrics(String repositoryName){
 
-		String pathRepository = "/Users/angeloafeltra/Documents/GitHub/Flakiness-Detection-An-Extensive-Analysis/MetricExtractor/spazioCondiviso/Repository/"+repositoryName;
+		String pathRepository = "./spazioCondiviso/Repository/"+repositoryName;
 
 		// Declaring Class-level test smell objects.
 		AssertionRoulette assertionRoulette = new AssertionRoulette();
@@ -42,10 +42,10 @@ public class RunFlakinessMetricsDetection {
 			String output = "nameProject,testCase,tloc,tmcCabe,assertionDensity,assertionRoulette,mysteryGuest,eagerTest,sensitiveEquality,resourceOptimism,"+
 					"conditionalTestLogic,fireAndForget,testRunWar,loc,lcom2,lcom5,cbo,wmc,rfc,mpc,halsteadVocabulary,halsteadLength,halsteadVolume,classDataShouldBePrivate,"+
 					"complexClass,functionalDecomposition,godClass,spaghettiCode\n";
-			String outputFile = "/Users/angeloafeltra/Documents/GitHub/Flakiness-Detection-An-Extensive-Analysis/MetricExtractor/spazioCondiviso/MetricsDetector/"+repositoryName;
+			String outputFile = "./spazioCondiviso/MetricsDetector/"+repositoryName;
 
 			String outputReject="nameProject,testCase\n";
-			String outputProjectReject = "/Users/angeloafeltra/Documents/GitHub/Flakiness-Detection-An-Extensive-Analysis/MetricExtractor/spazioCondiviso/MetricsDetector/"+repositoryName+"_TestReject";
+			String outputProjectReject = "./spazioCondiviso/MetricsDetector/"+repositoryName+"_TestReject";
 
 			// Method to convert a directory into a set of java packages.
 			Vector<PackageBean> packages = FolderToJavaProjectConverter.convert(project.getAbsolutePath());

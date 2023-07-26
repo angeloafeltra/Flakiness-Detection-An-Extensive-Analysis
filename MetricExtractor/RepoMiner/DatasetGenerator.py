@@ -8,7 +8,7 @@ class DatasetGenerator:
 
     def createDataset(self,datasetName):
         self.datasetName=datasetName;
-        self.pathDataset=os.path.join("/spazioCondiviso/Dataset/",
+        self.pathDataset=os.path.join("./spazioCondiviso/Dataset",
                                 '{}.csv'.format(datasetName))
         if not os.path.exists(self.pathDataset):
             df = pd.DataFrame(columns=['nameProject', 'testCase', 'tloc', 'tmcCabe',
