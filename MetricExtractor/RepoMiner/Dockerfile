@@ -6,4 +6,4 @@ COPY Cloner.py DatasetGenerator.py main.py ./
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir pandas tqdm requests pydriller
 
-CMD ["python", "./main.py"]
+
