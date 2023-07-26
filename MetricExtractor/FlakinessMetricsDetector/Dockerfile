@@ -1,4 +1,4 @@
-FROM eclipse-temurin:17-jdk-jammy
+FROM penjdk:17-alpine
 
 
 
