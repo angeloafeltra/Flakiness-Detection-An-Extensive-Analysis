@@ -1,0 +1,386 @@
+---
+title: "Dataset Flakiness Analysis"
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+---
+
+Nella seguente sezione, verrà eseguita un'analisi approfondita del dataset generato in modo da aumentare la qualità dei dati Si inizierà da una fase di data cleaning i cui passaggi dettagliati sono riportati di seguito, per poi eseguire una fase di analisi statistica del dataset.
+
+1.  Eliminazione delle repository senza test flaky: Inizieremo l'analisi rimuovendo le repository che non presentano almeno un test flaky. Questi test potrebbero non essere stati rilevati dal detector utilizzato per estrarre le relative metriche.
+
+2.  Verifica della presenza di repository con più commit e mantenimento del commit con il maggior numero di test flaky: Se esistono duplicati di repository con lo stesso contenuto ma con diversi commit storici, manterremo solo quello con il maggior numero di test flaky, semplificando così il dataset e riducendo ridondanze.
+
+3.  Rimozione di test setup e teardown: I test di setup e teardown sono solitamente utilizzati per preparare l'ambiente di test e ripulirlo dopo l'esecuzione dei test. Tuttavia, essi possono essere esclusi dalla nostra analisi per concentrarci esclusivamente sui test flaky che influenzano la qualità del software.
+
+4.  Rimozione dei duplicati: I test duplicati possono rappresentare uno spreco di risorse e potrebbero influenzare negativamente i risultati dell'analisi. Pertanto, procederemo con la rimozione di evnetuali test duplicati generati dal tool per estrarre le metriche in modo da garantire una selezione di test più compatta ed efficiente.
+
+5.  Rimozione dei duplicati con la variabile target differente: Dopo aver verificato la presenza di rumore all'interno del dataset ovvero campioni con le stesse variabili indipendenti ma variabile dipendente differente, saranno rimossi i test classificati come non flaky. Essi avendo le stesse metriche dei test flaky dovrebbero essere classificati come tali, tuttavia può darsi che non si è verificata la flakiness pertanto sono stati riportati come non flaky. Tuttavia per non falsificare l'esperimento si è preferito rimuoverli dal dataset
+
+Questi passaggi restituiranno un dataset con una qualità migliore su cui sarà possibile eseguire tecniche di machine learning per la predizione della flakiness.
+
+```{r}
+
+datasetPath='./Dataset/FlakeFlagger.csv'
+datasetName='FlakeFlagger'
+
+dataset = read.csv(datasetPath,header=TRUE,sep=",")
+dataset <- data.frame(dataset)
+
+nTNF<-nrow(dataset[dataset$isFlaky==0, ])
+nTF<-nrow(dataset[dataset$isFlaky==1, ])
+nRepo<-length(unique(dataset$nameProject))
+
+dati <- c(nTNF, nTF)
+titolo <- paste0("Dataset ",datasetName,'\n',nTF+nTNF," Test su ",nRepo," Repository")
+etichette <- c(paste0("Test Non Flaky\n",nTNF),paste0("Test Flaky\n",nTF))
+pie(dati, labels=etichette, main=titolo)
+```
+
+## 1. Elimino le repository senza test flaky
+
+```{r}
+repositories <- unique(dataset$nameProject)
+repoToRemove<-c()
+for (repository in repositories){
+  repo_dataframe <- dataset[dataset$nameProject==repository, ]
+  #Conto i test flaky
+  nTF<-nrow(dataset[repo_dataframe$isFlaky==1, ])
+  if (nTF==0){
+    dataset <- dataset[dataset$nameProject != repository, ]
+    repoToRemove=append(repoToRemove,repository)
+  }
+  
+}
+repoToRemove
+```
+
+```{r}
+nTNF<-nrow(dataset[dataset$isFlaky==0, ])
+nTF<-nrow(dataset[dataset$isFlaky==1, ])
+nRepo<-length(unique(dataset$nameProject))
+
+dati <- c(nTNF, nTF)
+titolo <- paste0("Dataset ",datasetName,' con repository con almeno un test flaky\n',nTF+nTNF," Test su ",nRepo," Repository")
+etichette <- c(paste0("Test Non Flaky\n",nTNF),paste0("Test Flaky\n",nTF))
+pie(dati, labels=etichette, main=titolo)
+```
+
+## 2. Verifico la presenza di repository con più commint e mantengo solamente il commit con più test flaky
+
+```{r}
+#Ottengo le repository presenti nel dataframe
+repositories <- unique(dataset$nameProject)
+
+#Rimuovo il commit dal nome della repository
+repositoriesNoCommit <- c()
+for (repository in repositories){
+  r=unlist(strsplit(repository,"_"))[[1]]
+  repositoriesNoCommit=append(repositoriesNoCommit,r)
+}
+
+#Identifico le repository con più commit
+repoWithMoreCommit <- c()
+for (repository in repositoriesNoCommit){
+  countDup=0
+  for (repository2 in repositoriesNoCommit){
+    if(repository==repository2) countDup=countDup+1
+  }
+  if(countDup>1){ #Se i duplicati sono maggiori di 1 allora abbiamo più commit
+    if (!repository %in% repoWithMoreCommit)
+    repoWithMoreCommit=append(repoWithMoreCommit,repository)
+  }
+}
+
+#Identifico il commit con più test flaky
+for (repository in repoWithMoreCommit){
+  dataset_repoMoreCommit <- subset(dataset, grepl(repository,nameProject))
+  commits <- unique(dataset_repoMoreCommit$nameProject)
+  max=0
+  commitWithMoreTF<-NULL
+  for (commit in commits){
+    df_commit <- dataset_repoMoreCommit[dataset_repoMoreCommit$nameProject==commit, ]
+    nTF<-nrow(df_commit[df_commit$isFlaky==1, ])
+    if(nTF>max){
+      max=nTF
+      commitWithMoreTF=commit
+    }
+  }
+  #Escludo tutti i commit tranne quello con più test flaky
+  for (commit in commits){
+    if(commit!=commitWithMoreTF) dataset <- dataset[dataset$nameProject != commit, ]
+  }
+}
+
+
+nTNF<-nrow(dataset[dataset$isFlaky==0, ])
+nTF<-nrow(dataset[dataset$isFlaky==1, ])
+nRepo<-length(unique(dataset$nameProject))
+
+dati <- c(nTNF, nTF)
+titolo <- paste0("Dataset ",datasetName,' con un solo commit per repository\n',nTF+nTNF," Test su ",nRepo," Repository")
+etichette <- c(paste0("Test Non Flaky\n",nTNF),paste0("Test Flaky\n",nTF))
+pie(dati, labels=etichette, main=titolo)
+```
+
+## 3. Rimuovo i test di setup e teardown
+
+```{r}
+dataset <- dataset[!grepl('.setup', tolower(dataset$testCase)), ]
+dataset <- dataset[!grepl('.before', tolower(dataset$testCase)), ]
+dataset <- dataset[!grepl('.teardown', tolower(dataset$testCase)), ]
+dataset <- dataset[!grepl('.after', tolower(dataset$testCase)), ]
+
+nTNF<-nrow(dataset[dataset$isFlaky==0, ])
+nTF<-nrow(dataset[dataset$isFlaky==1, ])
+nRepo<-length(unique(dataset$nameProject))
+
+dati <- c(nTNF, nTF)
+titolo <- paste0("Dataset ",datasetName,' senza test di setup e teardown\n',nTF+nTNF," Test su ",nRepo," Repository")
+etichette <- c(paste0("Test Non Flaky\n",nTNF),paste0("Test Flaky\n",nTF))
+pie(dati, labels=etichette, main=titolo)
+```
+
+## 4. Rimuovo eventuali duplicati
+
+```{r}
+duplicati <- dataset[duplicated(dataset), ]
+dataset <- subset(dataset, !duplicated(dataset))
+nTNF<-nrow(dataset[dataset$isFlaky==0, ])
+nTF<-nrow(dataset[dataset$isFlaky==1, ])
+nRepo<-length(unique(dataset$nameProject))
+
+dati <- c(nTNF, nTF)
+titolo <- paste0("Dataset ",datasetName,' senza duplicati\n',nTF+nTNF," Test su ",nRepo," Repository")
+etichette <- c(paste0("Test Non Flaky\n",nTNF),paste0("Test Flaky\n",nTF))
+pie(dati, labels=etichette, main=titolo)
+```
+
+## 5. Rimozione dei duplicati con la variabile target differente
+
+```{r}
+metric_columns<-c('tloc','tmcCabe','assertionDensity','assertionRoulette','mysteryGuest','eagerTest','sensitiveEquality','resourceOptimism','conditionalTestLogic','fireAndForget','testRunWar','loc','lcom2','lcom5','cbo','wmc','rfc','mpc','halsteadVocabulary','halsteadLength','halsteadVolume','classDataShouldBePrivate','complexClass','functionalDecomposition','godClass','spaghettiCode')
+
+#Dataframe contenete solo test flaky
+datasetF=dataset[dataset$isFlaky==1, ]
+#Dataframe contenente solo test non flaky
+datasetNF=dataset[dataset$isFlaky==0, ]
+
+rumore <- merge(datasetNF,datasetF,by=metric_columns) #Test duplicati con variabile target differente
+rumoreFlaky <- unique(rumore$testCase.y)
+rumoreNoFlaky <- unique(rumore$testCase.x)
+
+#Rimuovo i test non flaky che creano rumore
+for(rumore in rumoreNoFlaky){
+  dataset <- dataset[dataset$testCase != rumore, ]
+}
+  
+
+nTNF<-nrow(dataset[dataset$isFlaky==0, ])
+nTF<-nrow(dataset[dataset$isFlaky==1, ])
+nRepo<-length(unique(dataset$nameProject))
+
+dati <- c(nTNF, nTF)
+titolo <- paste0("Dataset ",datasetName,' senza rumore\n',nTF+nTNF," Test su ",nRepo," Repository")
+etichette <- c(paste0("Test Non Flaky\n",nTNF),paste0("Test Flaky\n",nTF))
+pie(dati, labels=etichette, main=titolo)
+```
+```{r}
+#Salvo il dataset pulito
+write.csv(dataset, file = paste0('./Dataset/',datasetName,'_Pulito.csv'), row.names = FALSE)
+```
+
+
+# Analisi Statistica
+
+## Proporzioni Repository
+
+```{r}
+
+removeCommitt <- function(x) { #Funzione per rimuovere il commit dal nome della repository
+   if(grepl("_", x, fixed=TRUE)){
+    #Rimuovo il commit dal nome
+    x=unlist(strsplit(x,"_"))[[1]]
+   }
+  x
+}
+
+countTestFlaky <- function(x,dataset) { #Funzione per contare i test flaky di un progetto
+  nrow(dataset[dataset$nameProject == x & dataset$isFlaky==1, ]) 
+}
+
+countTestNonFlaky <- function(x,dataset) { #Funzione per contare i test non flaky di un progetto
+  nrow(dataset[dataset$nameProject == x & dataset$isFlaky==0, ])
+}
+
+projects=dataset$nameProject 
+projects=projects[!duplicated(projects)]#Rimuovo i duplicati
+
+
+projects_withOutCommit<-c() #Vettore progetti senza commit nel nome
+testFlakyProjects<-c() #Vettore test flaky per progetto
+testNonFlakyProjects<-c()  #Vettore test non flaky per progetto
+totalTestProjects<-c() #Vettore test totali per progetto
+
+totalTF=0
+totalTNF=0
+for (project in projects){
+  numTestFlaky=countTestFlaky(project,dataset)
+  numTestNonFlaky=countTestNonFlaky(project,dataset)
+  count=numTestFlaky+numTestNonFlaky
+  totalTF=totalTF+numTestFlaky
+  totalTNF=totalTNF+numTestNonFlaky
+  
+  projects_withOutCommit=append(projects_withOutCommit,removeCommitt(project))
+  #projects_withOutCommit=append(projects_withOutCommit,project)
+  testFlakyProjects=append(testFlakyProjects,numTestFlaky)
+  testNonFlakyProjects=append(testNonFlakyProjects,numTestNonFlaky)
+  totalTestProjects=append(totalTestProjects,count)
+}
+
+projects_withOutCommit=append(projects_withOutCommit,'Totale')
+testFlakyProjects=append(testFlakyProjects,totalTF)
+testNonFlakyProjects=append(testNonFlakyProjects,totalTNF)
+totalTestProjects=append(totalTestProjects,totalTF+totalTNF)
+
+
+#create matrix
+mat <- matrix(append(append(testNonFlakyProjects,testFlakyProjects),totalTestProjects), ncol=3)
+data <-mat
+
+#specify row and column names of matrix
+rownames(data) <- projects_withOutCommit
+colnames(data) <- c('Test Non Flaky', 'Test Flaky','Totale')
+
+#convert matrix to table
+data <- as.table(data)
+
+#display table
+data
+
+```
+
+Per semplificare l'interpretazione della tabella precedente abbiamo deciso di osservare la distribuzione delle repository in base ai test flaky che possiedono. Utilizzando la colonna dei test flaky della tabella precedente, sono stati estratti tutti i valori distini ed ognuno di essi rappresenta una classe. Successivamente per ogni classe è stato calcolate il numero di repository che ne rientrano.
+
+```{r}
+testFlakyProjects=testFlakyProjects[-length(testFlakyProjects)] #Vettore contenete in numero di test flaky per progetto - totale
+uniqueVlaue=sort(unique(testFlakyProjects)) #Ordino i valori unici
+repUniqueValue<-c() #Vettore contenente le ripetizioni dei singoli valori
+for (uniqu in uniqueVlaue){
+  n=length(testFlakyProjects[testFlakyProjects == uniqu])
+  repUniqueValue=append(repUniqueValue,n)
+}
+
+x<-barplot(repUniqueValue,col = 1:length(uniqueVlaue), main = "Distribuzione Repository Per Test Flaky",las=2, names.arg = uniqueVlaue, ylim = c(0,100), ylab = "Numero Repository", xlab="Numero Test Flaky")
+
+y<-as.matrix(repUniqueValue)
+text(x,y+5,labels=as.character(y))
+```
+## Distribuzione Variabili Indipendenti
+
+```{r}
+#Normalizzo le metriche
+library(ggplot2)
+library(lattice)
+library(caret)
+datasetNormalizzato=dataset
+
+metric_columns<-c('tloc','tmcCabe','assertionDensity','assertionRoulette','mysteryGuest','eagerTest','sensitiveEquality','resourceOptimism','conditionalTestLogic','fireAndForget','testRunWar','loc','lcom2','lcom5','cbo','wmc','rfc','mpc','halsteadVocabulary','halsteadLength','halsteadVolume','classDataShouldBePrivate','complexClass','functionalDecomposition','godClass','spaghettiCode')
+
+process <- preProcess(as.data.frame(datasetNormalizzato[metric_columns]), method=c("range"))
+datasetNormalizzato[metric_columns] <- predict(process, as.data.frame(datasetNormalizzato[metric_columns]))
+```
+```{r}
+library(MASS)
+library(foreign)
+library(nnet)
+library(car)
+library(tidyr)
+library(carData)
+library(ggplot2)
+library(data.table)
+library(dplyr)
+library(reshape2)
+library(effsize)
+
+options(scipen=100000)
+  
+  
+
+#creo due dataframe, uno per i test flaky e uno per i test non flaky
+df_flaky <- datasetNormalizzato[which(datasetNormalizzato$isFlaky == 1),]
+df_no_flaky <- datasetNormalizzato[which(datasetNormalizzato$isFlaky == 0),]
+
+#creo due dataframe uno conentente le metriche dei test flaky e uno contenente le metriche dei test non falky
+mFlaky<- df_flaky[metric_columns] %>% gather(var,value) %>% mutate(set="Flaky")
+mNoFlaky <-df_no_flaky[metric_columns] %>% gather(var,value) %>% mutate(set="NoFlaky")
+
+#combino i due dataframe in un solo
+AB <- rbind(mNoFlaky,mFlaky)
+
+# creating the boxplot
+print(ggplot(AB, aes(x=value, y=var, fill=set)) + 
+    geom_boxplot(outlier.size=0.1)+
+    ggtitle("Boxplot Variabili Indipendenti Dataset"))
+```
+## Test CLiff's Delta
+
+```{r}
+library(rcompanion)
+
+
+print(paste("Cliff Delta wmc",cliffDelta(wmc ~ isFlaky, data=datasetNormalizzato,conf.level=.95,use.unbiased=TRUE, use.normal=FALSE, return.dm=FALSE)))
+print(paste("Cliff Delta tmcCabe",cliffDelta(tmcCabe ~ isFlaky, data=datasetNormalizzato,conf.level=.95,use.unbiased=TRUE, use.normal=FALSE, return.dm=FALSE)))
+print(paste("Cliff Delta tloc",cliffDelta(tloc ~ isFlaky, data=datasetNormalizzato,conf.level=.95,use.unbiased=TRUE, use.normal=FALSE, return.dm=FALSE)))
+print(paste("Cliff Delta testRunWar",cliffDelta(testRunWar ~ isFlaky, data=datasetNormalizzato,conf.level=.95,use.unbiased=TRUE, use.normal=FALSE, return.dm=FALSE)))
+print(paste("Cliff Delta spaghettiCode",cliffDelta(spaghettiCode ~ isFlaky, data=datasetNormalizzato,conf.level=.95,use.unbiased=TRUE, use.normal=FALSE, return.dm=FALSE)))
+print(paste("Cliff Delta sensitiveEquality",cliffDelta(sensitiveEquality ~ isFlaky, data=datasetNormalizzato,conf.level=.95,use.unbiased=TRUE, use.normal=FALSE, return.dm=FALSE)))
+print(paste("Cliff Delta rfc",cliffDelta(rfc ~ isFlaky, data=datasetNormalizzato,conf.level=.95,use.unbiased=TRUE, use.normal=FALSE, return.dm=FALSE)))
+print(paste("Cliff Delta resourceOptimism",cliffDelta(resourceOptimism ~ isFlaky, data=datasetNormalizzato,conf.level=.95,use.unbiased=TRUE, use.normal=FALSE, return.dm=FALSE)))
+print(paste("Cliff Delta mysteryGuest",cliffDelta(mysteryGuest ~ isFlaky, data=datasetNormalizzato,conf.level=.95,use.unbiased=TRUE, use.normal=FALSE, return.dm=FALSE)))
+print(paste("Cliff Delta mpc",cliffDelta(mpc ~ isFlaky, data=datasetNormalizzato,conf.level=.95,use.unbiased=TRUE, use.normal=FALSE, return.dm=FALSE)))
+print(paste("Cliff Delta loc",cliffDelta(loc ~ isFlaky, data=datasetNormalizzato,conf.level=.95,use.unbiased=TRUE, use.normal=FALSE, return.dm=FALSE)))
+print(paste("Cliff Delta locm5",cliffDelta(lcom5 ~ isFlaky, data=datasetNormalizzato,conf.level=.95,use.unbiased=TRUE, use.normal=FALSE, return.dm=FALSE)))
+print(paste("Cliff Delta locm2",cliffDelta(lcom2 ~ isFlaky, data=datasetNormalizzato,conf.level=.95,use.unbiased=TRUE, use.normal=FALSE, return.dm=FALSE)))
+print(paste("Cliff Delta halsteadVolume",cliffDelta(halsteadVolume ~ isFlaky, data=datasetNormalizzato,conf.level=.95,use.unbiased=TRUE, use.normal=FALSE, return.dm=FALSE)))
+print(paste("Cliff Delta halsteadVocabulary",cliffDelta(halsteadVocabulary ~ isFlaky, data=datasetNormalizzato,conf.level=.95,use.unbiased=TRUE, use.normal=FALSE, return.dm=FALSE)))
+print(paste("Cliff Delta halsteadLenght",cliffDelta(halsteadLength ~ isFlaky, data=datasetNormalizzato,conf.level=.95,use.unbiased=TRUE, use.normal=FALSE, return.dm=FALSE)))
+print(paste("Cliff Delta halsteadVocabulary",cliffDelta(halsteadVocabulary ~ isFlaky, data=datasetNormalizzato,conf.level=.95,use.unbiased=TRUE, use.normal=FALSE, return.dm=FALSE)))
+print(paste("Cliff Delta godClass",cliffDelta(godClass ~ isFlaky, data=datasetNormalizzato,conf.level=.95,use.unbiased=TRUE, use.normal=FALSE, return.dm=FALSE)))
+print(paste("Cliff Delta functionalDecomposition",cliffDelta(functionalDecomposition ~ isFlaky, data=datasetNormalizzato,conf.level=.95,use.unbiased=TRUE, use.normal=FALSE, return.dm=FALSE)))
+print(paste("Cliff Delta fireAndForget",cliffDelta(fireAndForget ~ isFlaky, data=datasetNormalizzato,conf.level=.95,use.unbiased=TRUE, use.normal=FALSE, return.dm=FALSE)))
+print(paste("Cliff Delta eagerTest",cliffDelta(eagerTest ~ isFlaky, data=datasetNormalizzato,conf.level=.95,use.unbiased=TRUE, use.normal=FALSE, return.dm=FALSE)))
+print(paste("Cliff Delta conditionalTestLogic",cliffDelta(conditionalTestLogic ~ isFlaky, data=datasetNormalizzato,conf.level=.95,use.unbiased=TRUE, use.normal=FALSE, return.dm=FALSE)))
+print(paste("Cliff Delta complexClass",cliffDelta(complexClass ~ isFlaky, data=datasetNormalizzato,conf.level=.95,use.unbiased=TRUE, use.normal=FALSE, return.dm=FALSE)))
+print(paste("Cliff Delta classDataShouldBePrivate",cliffDelta(classDataShouldBePrivate ~ isFlaky, data=datasetNormalizzato,conf.level=.95,use.unbiased=TRUE, use.normal=FALSE, return.dm=FALSE)))
+print(paste("Cliff Delta cbo",cliffDelta(cbo ~ isFlaky, data=datasetNormalizzato,conf.level=.95,use.unbiased=TRUE, use.normal=FALSE, return.dm=FALSE)))
+print(paste("Cliff Delta assertionDensity",cliffDelta(assertionDensity ~ isFlaky, data=datasetNormalizzato,conf.level=.95,use.unbiased=TRUE, use.normal=FALSE, return.dm=FALSE)))
+print(paste("Cliff Delta assertionRoulette",cliffDelta(assertionRoulette ~ isFlaky, data=datasetNormalizzato,conf.level=.95,use.unbiased=TRUE, use.normal=FALSE, return.dm=FALSE)))
+```
+## Distribuzione Variabili Indipendenti per repository
+
+```{r}
+
+repositories <- unique(dataset$nameProject)
+for (repository in repositories){
+  datasetRepo <- datasetNormalizzato[datasetNormalizzato$nameProject==repository, ]
+  
+  #creo due dataframe, uno per i test flaky e uno per i test non flaky
+  df_flaky <- datasetRepo[which(datasetRepo$isFlaky == 1),]
+  df_no_flaky <- datasetRepo[which(datasetRepo$isFlaky == 0),]
+  
+  #creo due dataframe uno conentente le metriche dei test flaky e uno contenente le metriche dei test non falky
+  mFlaky<- df_flaky[metric_columns] %>% gather(var,value) %>% mutate(set="Flaky")
+  mNoFlaky <-df_no_flaky[metric_columns] %>% gather(var,value) %>% mutate(set="NoFlaky")
+  
+  #combino i due dataframe in un solo
+  AB <- rbind(mNoFlaky,mFlaky)
+  # creating the boxplot
+  print(ggplot(AB, aes(x=value, y=var, fill=set)) + 
+    geom_boxplot(outlier.size=0.1)+
+    ggtitle(paste0("Boxplot Variabili Indipendenti Dataset Repository",removeCommitt(repository))))
+}
+
+```
+
