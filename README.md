@@ -6,7 +6,12 @@ Inizialmente la flakiness è stata affrontata rieseguendo più volte il caso di 
 Diversi studi sono stati condotti su diversi dataset, seguendo delle metodologie ad hoc che puntavano a verificare più la fattibilità dell’utilizzo del machine learning che la reale utilità pratica utilizzando un’approccio in-vitro.
 Con tale lavoro cerchiamo di fare l’esatto opposto, ovvero utilizzare un approccio in-vivo per mostrare la reale utilità pratica del machine learning verso la flakiness.
 
+
+
+Per poter replicare il seguente lavoro bisogna eseguire i seguenti passi:
+
 ## Generazione Dataset
+Per replicare i nostri dataset utilizzare la lista di test flaky presenti nella cartella ListaTestFlaky per poter generare i relativi dataset.
 
 ### Metodo 1 (non richiede l'utilizzo di Docker)
 1. Clonare la repository git
@@ -24,10 +29,14 @@ Con tale lavoro cerchiamo di fare l’esatto opposto, ovvero utilizzare un appro
 6. Eseguire il comando: python main.py [nome_csv_listaTestFlaky] [nome_dataset_da_generare]
 7. Al termine della generazione del dataset eseguire il comando: docker-compose cp repo_miner:/spazioCondiviso/Dataset/[nome_dataset_da_generare].csv [path_local_folder]
 
+E consigliabile utilizzare Docker in quanto con windows si potrebbero avere degli errori durante la fase di clone, data la creazione di cartelle con un nome troppo lungo.
 
 
 
 ## Dataset Analysis
+Dopo la generazione dei vari dataset utilizzando il file Data_Analysis.Rmd è possibile eseguire una fase di data cleaning per miglioare la qualità dei dataset. All'interno di tale file tuttavia deve essere specificato il path ed il nome del dataset da analizzare
+
+
 
 ## Machine Learning Experiments 
 
