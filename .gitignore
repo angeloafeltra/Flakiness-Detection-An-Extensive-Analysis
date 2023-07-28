@@ -55,5 +55,6 @@ MetricExtractor/spazioCondiviso/Repository/**
 MetricExtractor/spazioCondiviso/MetricsDetector/**
 *.DS_Store
 MetricExtractor/RepoMiner/__pycache__
-MetricExtractor/RepoMiner/.idea/**
-MetricExtractor/RepoMiner/.idea/sonarlint/
+MetricExtractor/RepoMiner/.idea
+MetricExtractor/RepoMiner/.idea/sonarlint/**
+MetricExtractor/RepoMiner/.idea/sonarlint
