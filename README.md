@@ -34,9 +34,14 @@ E consigliabile utilizzare Docker in quanto con windows si potrebbero avere degl
 
 
 ## Dataset Analysis
-Dopo la generazione dei vari dataset utilizzando il file Data_Analysis.Rmd è possibile eseguire una fase di data cleaning per miglioare la qualità dei dataset. All'interno di tale file tuttavia deve essere specificato il path ed il nome del dataset da analizzare
+Dopo la generazione dei vari dataset utilizzando il file Data_Analysis.Rmd è possibile eseguire una fase di data cleaning per miglioare la qualità dei dataset nella quale verrano eseguiti i seguenti passaggi:
+1. Rimozione repository senza test flaky
+2. Mantenimento di un solo commit per repository (il commit con più test flaky)
+3. Rimozione test setup e teardown
+4. Rimozione duplicati
+5. Rimozione rumore (test non flaky con la stessa metrica dei test flaky)
 
-
+Tuttavia per eseguire tale analisi all'interno di tale file Data_Analysis.Rmd deve essere specificato il path ed il nome del dataset da analizzare
 
 ## Machine Learning Experiments 
 
