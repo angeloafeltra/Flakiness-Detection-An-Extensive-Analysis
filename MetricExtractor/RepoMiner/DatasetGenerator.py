@@ -18,7 +18,7 @@ class DatasetGenerator:
                                     'testRunWar', 'loc', 'lcom2', 'lcom5',
                                     'cbo', 'wmc', 'rfc', 'mpc',
                                     'halsteadVocabulary', 'halsteadLength', 'halsteadVolume',
-                                    'classDataShouldBePrivate', 'complexClass', 'functionalDecomposition'
+                                    'classDataShouldBePrivate', 'complexClass', 'functionalDecomposition',
                                     'godClass','spaghettiCode','isFlaky'])
 
             df.to_csv(self.pathDataset,index=False)
