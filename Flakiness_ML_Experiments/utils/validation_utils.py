@@ -2,12 +2,9 @@ from sklearn.metrics import accuracy_score
 from sklearn.metrics import f1_score
 from sklearn.metrics import precision_score
 from sklearn.metrics import recall_score
-from sklearn.metrics import confusion_matrix
+from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
 from sklearn.metrics import roc_curve,roc_auc_score
 import matplotlib.pyplot as plt
-
-
-
 import mlflow
 
 def val_and_log_metrics(y_true, y_predict):
@@ -39,6 +36,11 @@ def val_and_log_metrics(y_true, y_predict):
     plt.legend(loc=4)
     plt.xlabel('False Positive Rate')
     plt.ylabel('True Positive Rate')
-    plt.show()
+    mlflow.log_figure(plt.gcf(),"ROC-AUC Curve.png")
+
+    disp = ConfusionMatrixDisplay(confusion_matrix=confusion_matrix(y_true, y_predict),
+                                    display_labels=[0,1])
+    disp.plot()
+    mlflow.log_figure(plt.gcf(),"Confusion Matrix.png")
 
     return acc, pr, rec, f1, tn, fp, fn, tp

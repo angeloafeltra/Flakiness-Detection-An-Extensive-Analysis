@@ -16,7 +16,7 @@ def run(datasetName):
 
 
     dataset = pd.read_csv(os.path.join('..','Dataset','{}.csv'.format(datasetName)))
-    train_set, val_set, test_set = dataset_split(dataset,0.20,0.10)
+    train_set, val_set, test_set = dataset_split(dataset,0.20,0.20)
 
 
     print("TRAIN SET - TF:{}, TNF:{}".format(len(train_set[train_set['isFlaky'] == 1]),
@@ -112,9 +112,10 @@ def run(datasetName):
 
     with mlflow.start_run(run_id=row['run_id'].to_string(index=False, header=False),
                             experiment_id=row['experiment_id'].to_string(index=False, header=False),
-                            nested=True):
+                            nested=True) as active_run:
         y_predict=pipeline.predict(X_test_set)
         validation_utils.val_and_log_metrics(y_test_set,y_predict)
+        mlflow.set_tag("Best Pipeline","Best Pipeline")
 
 
 
