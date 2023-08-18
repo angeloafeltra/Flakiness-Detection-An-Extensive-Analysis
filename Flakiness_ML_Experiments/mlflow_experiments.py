@@ -52,10 +52,9 @@ def run(datasetName):
     ########################################
 
     print("Evaluated")
-    for (experiment,pipName) in experimentList.EXPERIMENTS[0:1]:
+    for (experiment,pipName) in experimentList.EXPERIMENTS:
         print(pipName)
         experiment.run(X_train_set, y_train_set, X_val_set, y_val_set,pipName, experiment_ID)
-
 
 
     ########################################
@@ -72,12 +71,6 @@ def run(datasetName):
                                         'artifacts',
                                         row['tags.mlflow.runName'].to_string(index=False, header=False),
                                         'model.pkl'),'rb'))
-    '''
-    while mlflow.start_run(run_id=row['run_id'].to_string(index=False, header=False),
-                            experiment_id=experiment_ID):
-                            
-                            
-    '''
 
     print("\nTuning {}".format(row['tags.mlflow.runName'].to_string(index=False, header=False)))
     tuning_pipeline(X_train_set,

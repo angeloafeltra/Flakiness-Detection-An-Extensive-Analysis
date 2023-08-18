@@ -3,7 +3,7 @@ import utils.experimentsList
 import utils.eval_utils
 
 from sklearn.preprocessing import StandardScaler
-from sklearn.pipeline import Pipeline
+from imblearn.pipeline import Pipeline
 
 def run(X_train_set, y_train_set, X_val_set, y_val_set, pipelineName, experimentID):
 
@@ -13,7 +13,7 @@ def run(X_train_set, y_train_set, X_val_set, y_val_set, pipelineName, experiment
         for clf in utils.experimentsList.CLASSIFICATORI:
 
             with mlflow.start_run(run_name='{}_{}'.format(pipelineName,clf.__class__.__name__), experiment_id=experimentID, nested=True) as child_run:
-
+                print("|--- {}".format(clf.__class__.__name__))
                 pipeline = Pipeline(steps = [('scaler',StandardScaler()),("model", clf)]).set_output(transform = "pandas")
                 pipeline.fit(X=X_train_set, y=y_train_set)
                 y_pred=pipeline.predict(X=X_train_set)
