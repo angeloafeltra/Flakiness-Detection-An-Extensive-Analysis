@@ -17,6 +17,10 @@ import experiments.Pipeline16 as Pipeline16
 import experiments.Pipeline17 as Pipeline17
 import experiments.Pipeline18 as Pipeline18
 
+import crossproject_experiments.crossproject_validation as crossproject_validation
+import crossproject_experiments.crossproject_burakfilter as burakfilter
+import crossproject_experiments.crossproject_local_clustering as local_clustering
+import crossproject_experiments.crossproject_local_repository as local_repository
 
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.svm import SVC
@@ -68,24 +72,18 @@ TUNING = [
                             'metric': ['euclidean','manhattan']
                         }
     },
-
-
     {
         'classificatore' : SVC().__class__.__name__,
         'tuning_param' : {
                             'C': [0.001, 0.01, 0.1, 1, 10, 100]
                         }
     },
-
-
     {
         'classificatore' : LogisticRegression().__class__.__name__,
         'tuning_param' : {
                             'C': [0.001, 0.01, 0.1, 1, 10, 100]
                         }
     },
-
-
     {
         'classificatore' : DecisionTreeClassifier().__class__.__name__,
         'tuning_param' : {
@@ -93,8 +91,6 @@ TUNING = [
                             'max_depth': [None, 4, 6, 8, 10]
                         }
     },
-
-
     {
         'classificatore' : RandomForestClassifier().__class__.__name__,
         'tuning_param' : {
@@ -103,20 +99,23 @@ TUNING = [
                             'n_estimators': [100, 150, 200, 300]
         }
     },
-
-
     {
         'classificatore' : XGBClassifier().__class__.__name__,
         'tuning_param' : {
 
         }
     },
-
-
     {
         'classificatore' : Perceptron().__class__.__name__,
         'tuning_param' : {
                             'penalty': ['l2', 'l1', None]
                         }
     }
+]
+
+CROSS_PROJECT_EXPERIMENT=[
+    (crossproject_validation, 'crossproject_classic'),
+    (burakfilter, 'burak_filter'),
+    (local_clustering, 'localmodel_clustering'),
+    (local_repository, 'localmodel_repository')
 ]

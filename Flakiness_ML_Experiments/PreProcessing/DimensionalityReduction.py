@@ -12,6 +12,7 @@ class DimensionalityReduction(BaseEstimator, TransformerMixin):
     def fit(self, X, y=None):
         self.pca.fit(X)
 
+        plt.clf()
         plt.plot(np.cumsum(self.pca.explained_variance_ratio_))
         plt.xlabel('Number of components')
         plt.ylabel('Explained variance')

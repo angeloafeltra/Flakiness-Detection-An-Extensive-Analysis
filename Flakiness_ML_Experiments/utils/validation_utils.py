@@ -32,12 +32,14 @@ def val_and_log_metrics(y_true, y_predict):
     mlflow.log_metric("FN", fn)
     mlflow.log_metric("TP", tp)
 
+    plt.clf()
     plt.plot(fpr,tpr,label="auc="+str(auc))
     plt.legend(loc=4)
     plt.xlabel('False Positive Rate')
     plt.ylabel('True Positive Rate')
     mlflow.log_figure(plt.gcf(),"ROC-AUC Curve.png")
 
+    plt.clf()
     disp = ConfusionMatrixDisplay(confusion_matrix=confusion_matrix(y_true, y_predict),
                                     display_labels=[0,1])
     disp.plot()

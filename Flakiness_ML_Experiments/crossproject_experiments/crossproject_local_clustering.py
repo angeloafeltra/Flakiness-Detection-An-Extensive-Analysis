@@ -12,33 +12,11 @@ from yellowbrick.cluster import KElbowVisualizer
 from sklearn.cluster import KMeans
 import copy
 
-def run(datasetName):
-    warnings.filterwarnings("ignore")
+def run(dataset, pipeline, experiment_ID):
 
-    # Creo un nuovo esperimento su mlflow
-    experiment =mlflow.get_experiment_by_name("FlakinessMLExperiment_{}".format(datasetName))
-    if not experiment:
-        experiment_ID=mlflow.create_experiment("FlakinessMLExperiment_{}".format(datasetName))
-    else:
-        experiment_ID=experiment.experiment_id
-
-
-    all_run=mlflow.search_runs(experiment_ids=[experiment_ID]) #Ottengo tutte le run dell'esperimento
-    row=all_run[all_run['metrics.Val_F1'] == all_run['metrics.Val_F1'].max()].head(1)
-    pipeline=pickle.load(open(os.path.join('.',
-                                            'mlruns',
-                                            row['experiment_id'].to_string(index=False, header=False),
-                                            row['run_id'].to_string(index=False, header=False),
-                                            'artifacts',
-                                            row['tags.mlflow.runName'].to_string(index=False, header=False),
-                                            'model.pkl'),'rb'))
-
-    dataset = pd.read_csv(os.path.join('..','Dataset','{}.csv'.format(datasetName)))
     list_project=dataset['nameProject'].unique()
 
-
-
-    with mlflow.start_run(run_name='CrossProject_LocalModel',experiment_id= experiment_ID) as father_run:
+    with mlflow.start_run(run_name='CrossProject_LocalModel_Clustering',experiment_id= experiment_ID) as father_run:
         for project in list_project:
             print(project)
             with mlflow.start_run(run_name=project,experiment_id=experiment_ID,nested=True) as child_run:
@@ -81,7 +59,7 @@ def run(datasetName):
 
                     local_model['Index_Cluster'].append(i)
                     local_model['Cluster'].append(cluster)
-                    local_model['Local pipeline'].append(local_pip)
+                    local_model['Local pipeline'].append(copy.copy(local_pip))
 
 
                 #3. Per ogni campione identifico il cluster d'appartenenza e eseguo la prediction
