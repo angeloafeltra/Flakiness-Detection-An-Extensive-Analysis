@@ -1,6 +1,6 @@
 from sklearn.base import BaseEstimator, TransformerMixin
-from utils.multicollinearity import multicollinearity_eppsilon_feature
-from utils.informationGain import informationGain_epplsilon_feature
+from utils.preprocessing_utils import multicollinearity_eppsilon_feature
+from utils.preprocessing_utils import informationGain_epplsilon_feature
 import pandas as pd
 import numpy as np
 import copy
