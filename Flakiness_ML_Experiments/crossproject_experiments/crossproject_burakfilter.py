@@ -9,7 +9,7 @@ import mlflow
 import warnings
 import pickle
 import utils.validation_utils as validation_utils
-import utils.burak_filter as burak_filter
+from utils.burak_utils import classic_burakFilter
 
 def run(dataset, pipeline, experiment_ID):
 
@@ -31,7 +31,7 @@ def run(dataset, pipeline, experiment_ID):
                 y_test_set = test_set[col.TARGET]
                 cat_test_set = test_set.drop([col.TARGET] + col.NUMERICAL_FEATURES, axis = 1)
 
-                X_train_burak, y_train_burak = burak_filter.burak(X_train_set.to_numpy(),
+                X_train_burak, y_train_burak =  classic_burakFilter(X_train_set.to_numpy(),
                                                                     y_train_set.to_numpy(),
                                                                     X_test_set.to_numpy(),
                                                                     10)

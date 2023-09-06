@@ -10,6 +10,7 @@ import warnings
 import pickle
 import utils.validation_utils as validation_utils
 from train_val_test_split import dataset_split
+from utils import eval_utils
 
 def run(datasetName):
 
@@ -52,18 +53,17 @@ def run(datasetName):
                                                 len(repo_set[repo_set['isFlaky']==0])))
 
 
-                train_set, test_set= dataset_split(repo_set, 0, 0.20)
+                train_set, test_set= dataset_split(repo_set, 0, 0.50)
 
                 X_train_set = train_set.drop([col.TARGET] + col.CATEGORICAL_FEATURES, axis = 1)
                 y_train_set = train_set[col.TARGET]
-                cat_train_set = train_set.drop([col.TARGET] + col.NUMERICAL_FEATURES, axis = 1)
 
                 X_test_set = test_set.drop([col.TARGET] + col.CATEGORICAL_FEATURES, axis = 1)
                 y_test_set = test_set[col.TARGET]
-                cat_train_set = test_set.drop([col.TARGET] + col.NUMERICAL_FEATURES, axis = 1)
-
 
                 pipeline.fit(X_train_set,y_train_set)
+                y_predict=pipeline.predict(X_train_set)
+                eval_utils.eval_and_log_metrics("Train",y_train_set,y_predict)
                 y_predict=pipeline.predict(X_test_set)
                 validation_utils.val_and_log_metrics(y_test_set,y_predict)
 
