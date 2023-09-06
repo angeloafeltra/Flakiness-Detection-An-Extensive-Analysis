@@ -60,3 +60,5 @@ MetricExtractor/RepoMiner/.idea/sonarlint/**
 MetricExtractor/RepoMiner/.idea/sonarlint
 Flakiness_ML_Experiments/mlruns
 Flakiness_ML_Experiments/mlruns/**
+Flakiness_ML_Experiments/.idea/sonarlint
+Flakiness_ML_Experiments/.idea/sonarlint/**
