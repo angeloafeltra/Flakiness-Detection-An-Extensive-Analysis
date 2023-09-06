@@ -1,43 +1,59 @@
 import sys
-
-
-from train_val_test_split import dataset_split
-import pandas as pd
-import os
 import utils.columns as col
-import utils.experimentsList as experimentList
 import mlflow
-import warnings
-import pickle
 import utils.validation_utils as validation_utils
+from sklearn.model_selection import train_test_split
 
 def run(dataset, pipeline, experiment_ID):
 
-    list_project=dataset['nameProject'].unique()
+    list_project = dataset['nameProject'].unique()
 
-    with mlflow.start_run(run_name='CrossProject_Validation',experiment_id= experiment_ID) as father_run:
-        for project in list_project:
-            print(project)
-            with mlflow.start_run(run_name=project,experiment_id=experiment_ID,nested=True) as child_run:
-                train_set=dataset.loc[dataset['nameProject']!=project]
-                test_set=dataset.loc[dataset['nameProject']==project]
+    with mlflow.start_run(run_name= 'CrossProject_Classic',experiment_id= experiment_ID) as father_run:
 
-                X_train_set = train_set.drop([col.TARGET] + col.CATEGORICAL_FEATURES, axis = 1)
-                y_train_set = train_set[col.TARGET]
-                cat_train_set = train_set.drop([col.TARGET] + col.NUMERICAL_FEATURES, axis = 1)
+        for target in list_project:
+            print("Target: ",target)
 
-                X_test_set = test_set.drop([col.TARGET] + col.CATEGORICAL_FEATURES, axis = 1)
-                y_test_set = test_set[col.TARGET]
-                cat_test_set = test_set.drop([col.TARGET] + col.NUMERICAL_FEATURES, axis = 1)
+            #Inserire qui il criterio di filtraggio per skippare il target
+
+            with mlflow.start_run(run_name=target,experiment_id=experiment_ID,nested=True) as child_run:
+                source_set=dataset.loc[dataset['nameProject']!=target]
+                target_set=dataset.loc[dataset['nameProject']==target]
+
+                source_TF=len(source_set[source_set['isFlaky']==1])
+                source_TNF=len(source_set[source_set['isFlaky']==0])
+                target_TF=len(target_set[target_set['isFlaky']==1])
+                target_TNF=len(target_set[target_set['isFlaky']==0])
+
+                mlflow.log_metric("Source Test Flaky", source_TF)
+                mlflow.log_metric("Source Test Non Flaky", source_TNF)
+                mlflow.log_metric("Target Test Flaky", source_TF)
+                mlflow.log_metric("Target Test Non Flaky", source_TNF)
+
+                print("Source TF:{} - TNF:{}\n Target TF:{} - TNF:{} ".format(source_TF,
+                                                                              source_TNF,
+                                                                              target_TF,
+                                                                              target_TNF))
+
+                X_source_set = source_set.drop([col.TARGET] + col.CATEGORICAL_FEATURES, axis = 1)
+                y_source_set = source_set[col.TARGET]
 
 
-                mlflow.log_metric("Test Flaky", len(test_set[test_set['isFlaky']==1]))
-                mlflow.log_metric("Test Non Flaky", len(test_set[test_set['isFlaky']==0]))
-                print("TF:{} - TNF:{}".format(len(test_set[test_set['isFlaky']==1]), len(test_set[test_set['isFlaky']==0])))
+                X_source_set_train, X_source_set_test, y_source_set_train, y_source_set_test = train_test_split(X_source_set, y_source_set,
+                                                                                                                stratify = y_source_set,
+                                                                                                                test_size = 0.2,
+                                                                                                                random_state = 42)
 
-                pipeline.fit(X_train_set,y_train_set)
-                y_predict=pipeline.predict(X_test_set)
-                validation_utils.val_and_log_metrics(y_test_set,y_predict)
+
+                X_target_set = target_set.drop([col.TARGET] + col.CATEGORICAL_FEATURES, axis = 1)
+                y_target_set = target_set[col.TARGET]
+
+
+                pipeline.fit(X_source_set_train, y_source_set_train)
+                y_predict=pipeline.predict(X_source_set_test)
+                validation_utils.val_and_log_metrics(y_source_set_test, y_predict,'Source')
+
+                y_predict=pipeline.predict(X_target_set)
+                validation_utils.val_and_log_metrics(y_target_set,y_predict,'Target')
 
 
 

@@ -17,15 +17,14 @@ import experiments.Pipeline16 as Pipeline16
 import experiments.Pipeline17 as Pipeline17
 import experiments.Pipeline18 as Pipeline18
 
-import crossproject_experiments.crossproject_classic as crossproject_validation
+import crossproject_experiments.crossproject_classic as crossproject_classic
 import crossproject_experiments.crossproject_one_source as crossproject_one_source
 import crossproject_experiments.crossproject_burakfilter as burakfilter
 import crossproject_experiments.crossproject_local_clustering as local_clustering
 import crossproject_experiments.crossproject_local_repository as local_repository
 import crossproject_experiments.crossproject_NSGRT as crossproject_NSGRT
 import crossproject_experiments.crossproject_TCA as TCA
-import crossproject_experiments.crossproject_TransferForest as TransferTree
-import crossproject_experiments.crossproject_2 as test
+
 
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.svm import SVC
@@ -119,13 +118,11 @@ TUNING = [
 ]
 
 CROSS_PROJECT_EXPERIMENT=[
-    (crossproject_validation, 'crossproject_classic'),
+    (crossproject_classic, 'crossproject_classic'),
     (crossproject_one_source, 'crossproject_classic_one_source'),
     (burakfilter, 'burak_filter'),
     (local_clustering, 'localmodel_clustering'),
     (local_repository, 'localmodel_repository'),
     (crossproject_NSGRT, 'NSGRT'),
-    (TCA, 'TCA'),
-    (TransferTree, 'TransferTree'),
-    (test, 'test')
+    (TCA, 'TCA')
 ]
