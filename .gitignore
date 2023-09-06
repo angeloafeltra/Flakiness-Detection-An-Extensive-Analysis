@@ -58,3 +58,5 @@ MetricExtractor/RepoMiner/__pycache__
 MetricExtractor/RepoMiner/.idea
 MetricExtractor/RepoMiner/.idea/sonarlint/**
 MetricExtractor/RepoMiner/.idea/sonarlint
+Flakiness_ML_Experiments/mlruns
+Flakiness_ML_Experiments/mlruns/**
