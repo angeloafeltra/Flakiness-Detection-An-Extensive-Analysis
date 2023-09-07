@@ -6,7 +6,7 @@ from sklearn.model_selection import train_test_split
 
 def run(dataset, pipeline, experiment_ID):
 
-    list_project = dataset['nameProject'].unique()
+    list_project = dataset[col.CATEGORICAL_FEATURES[0]].unique()
 
     with mlflow.start_run(run_name= 'CrossProject_Classic',experiment_id= experiment_ID) as father_run:
 
@@ -16,13 +16,13 @@ def run(dataset, pipeline, experiment_ID):
             #Inserire qui il criterio di filtraggio per skippare il target
 
             with mlflow.start_run(run_name=target,experiment_id=experiment_ID,nested=True) as child_run:
-                source_set=dataset.loc[dataset['nameProject']!=target]
-                target_set=dataset.loc[dataset['nameProject']==target]
+                source_set=dataset.loc[dataset[col.CATEGORICAL_FEATURES[0]]!=target]
+                target_set=dataset.loc[dataset[col.CATEGORICAL_FEATURES[0]]==target]
 
-                source_TF=len(source_set[source_set['isFlaky']==1])
-                source_TNF=len(source_set[source_set['isFlaky']==0])
-                target_TF=len(target_set[target_set['isFlaky']==1])
-                target_TNF=len(target_set[target_set['isFlaky']==0])
+                source_TF=len(source_set[source_set[col.TARGET]==1])
+                source_TNF=len(source_set[source_set[col.TARGET]==0])
+                target_TF=len(target_set[target_set[col.TARGET]==1])
+                target_TNF=len(target_set[target_set[col.TARGET]==0])
 
                 mlflow.log_metric("Source Test Flaky", source_TF)
                 mlflow.log_metric("Source Test Non Flaky", source_TNF)
