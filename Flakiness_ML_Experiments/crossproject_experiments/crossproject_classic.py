@@ -33,7 +33,7 @@ def run(dataset, pipeline, experiment_ID):
                 mlflow.log_metric("Target Test Flaky", source_TF)
                 mlflow.log_metric("Target Test Non Flaky", source_TNF)
 
-                print("Source TF:{} - TNF:{}\n Target TF:{} - TNF:{} ".format(source_TF,
+                print("Source TF:{} - TNF:{}\nTarget TF:{} - TNF:{} ".format(source_TF,
                                                                               source_TNF,
                                                                               target_TF,
                                                                               target_TNF))
@@ -61,29 +61,27 @@ def run(dataset, pipeline, experiment_ID):
 
                 #Explenability
                 df=calculate_distribution(source_set,target_set)
-                df.to_csv('Distribution Source-Target.csv')
-                mlflow.log_artifact('Distribution Source-Target.csv','Distribution Source-Target')
+                df.to_csv('Distribution Source-Target.csv',index=False)
+                mlflow.log_artifact('Distribution Source-Target.csv','Distribution')
                 os.remove('Distribution Source-Target.csv')
 
                 df=calculate_distribution(source_set.loc[source_set[col.TARGET]==0],
                                           target_set.loc[target_set[col.TARGET]==0])
-                df.to_csv('Distribution Non Flaky Test Source-Target.csv')
-                mlflow.log_artifact('Distribution Non Flaky Test Source-Target.csv','Distribution Non Flaky Test Source-Target')
+                df.to_csv('Distribution Non Flaky Test Source-Target.csv',index=False)
+                mlflow.log_artifact('Distribution Non Flaky Test Source-Target.csv','Distribution')
                 os.remove('Distribution Non Flaky Test Source-Target.csv')
 
                 df=calculate_distribution(source_set.loc[source_set[col.TARGET]==1],
                                           target_set.loc[target_set[col.TARGET]==1])
-                df.to_csv('Distribution Flaky Test Source-Target.csv')
-                mlflow.log_artifact('Distribution Flaky Test Source-Target.csv','Distribution Flaky Test Source-Target')
+                df.to_csv('Distribution Flaky Test Source-Target.csv',index=False)
+                mlflow.log_artifact('Distribution Flaky Test Source-Target.csv','Distribution')
                 os.remove('Distribution Flaky Test Source-Target.csv')
 
 
                 fi=features_importance(pipeline.get_params('steps')['model'])
-                fi.to_csv('Feature Importances Classifier.csv')
+                fi.to_csv('Feature Importances Classifier.csv',index=False)
                 mlflow.log_artifact('Feature Importances Classifier.csv','Feature Importances Classifier')
                 os.remove('Feature Importances Classifier.csv')
-
-
 
 
 

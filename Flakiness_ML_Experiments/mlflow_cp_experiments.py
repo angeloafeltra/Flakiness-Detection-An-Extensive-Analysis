@@ -28,7 +28,7 @@ def run(datasetName):
 
     all_run=mlflow.search_runs(experiment_ids=[experiment_ID]) #Ottengo tutte le run dell'esperimento
     row=all_run[all_run['metrics.Val_F1'] == all_run['metrics.Val_F1'].max()].head(1)
-    pipeline=pickle.load(open(os.path.join('..',
+    pipeline=pickle.load(open(os.path.join('.',
                                             'mlruns',
                                             row['experiment_id'].to_string(index=False, header=False),
                                             row['run_id'].to_string(index=False, header=False),

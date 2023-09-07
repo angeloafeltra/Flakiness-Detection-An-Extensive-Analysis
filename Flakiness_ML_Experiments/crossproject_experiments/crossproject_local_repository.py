@@ -57,19 +57,21 @@ def run(dataset, pipeline, experiment_ID):
 
                 #2. Per ogni campione identifico la repo e eseguo la prediction
                 y_predict=[]
+                indexs_repo=[]
                 for i in range(len(X_target_set)):
                     target_instance=X_target_set.iloc[i, ].to_numpy()
                     target_instance=target_instance.reshape(1,-1)
                     distances = euclidean(target_instance, local_model['Centroid'])
                     index_repo=np.argmin(distances,axis=0)
-                    y_predict.append(local_model['Local pipeline'][index_repo].predict(target_instance))
+                    indexs_repo.append(local_model['Repository'][index_repo])
+                    y_predict.append(local_model['Local pipeline'][index_repo].predict(target_instance)[0])
 
 
                 validation_utils.val_and_log_metrics(y_target_set,y_predict,'Target')
                 df=pd.DataFrame()
                 df['True Lable']=y_target_set
                 df['Predict Lable']=y_predict
-                df['Repository']=local_model['Repository'][index_repo]
+                df['Repository']=indexs_repo
                 df.to_csv('Target Predict Log.csv')
                 mlflow.log_artifact('Target Predict Log.csv','Target Predict Log')
                 os.remove('Target Predict Log.csv')

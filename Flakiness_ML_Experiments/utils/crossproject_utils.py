@@ -39,7 +39,7 @@ def calculate_distribution(source_set,target_set):
     }
 
     for columnName in col.NUMERICAL_FEATURES:
-        data['column'].append(col)
+        data['column'].append(columnName)
 
         data['Mean_Source'].append(source_set[columnName].mean())
         data['STD_Source'].append(source_set[columnName].std())
@@ -56,7 +56,7 @@ def calculate_distribution(source_set,target_set):
 
 
 
-def features_importance(clf, columns):
+def features_importance(clf):
 
     data={
         'features': [],

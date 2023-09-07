@@ -39,7 +39,7 @@ def run(dataset, pipeline, experiment_ID):
                 mlflow.log_metric("Target Test Flaky", source_TF)
                 mlflow.log_metric("Target Test Non Flaky", source_TNF)
 
-                print("Source TF:{} - TNF:{}\n Target TF:{} - TNF:{} ".format(source_TF,
+                print("Source TF:{} - TNF:{}\nTarget TF:{} - TNF:{} ".format(source_TF,
                                                                               source_TNF,
                                                                               target_TF,
                                                                               target_TNF))
@@ -80,6 +80,7 @@ def run(dataset, pipeline, experiment_ID):
 
                 for i in range(0,ideal_cluster):
                     X_cluster_set=X_source_set.loc[X_source_set['cluster']==i]
+                    X_cluster_set=X_cluster_set.drop(['cluster'],axis=1)
                     indices=X_source_set.index[X_source_set['cluster'] == i].tolist()
                     y_cluster_set=y_source_set.iloc[indices]
 
@@ -112,26 +113,26 @@ def run(dataset, pipeline, experiment_ID):
                     #Explenability Cluster
                     cluster_set=pd.concat([X_cluster_set, y_cluster_set], axis=1)
                     df=calculate_distribution(cluster_set,target_set)
-                    df.to_csv('Distribution Cluster {}-Target.csv'.format(i))
-                    mlflow.log_artifact('Distribution Cluster {}-Target.csv'.format(i),'Distribution Cluster {}-Target'.format(i))
+                    df.to_csv('Distribution Cluster {}-Target.csv'.format(i),index=False)
+                    mlflow.log_artifact('Distribution Cluster {}-Target.csv'.format(i),'Distribution')
                     os.remove('Distribution Cluster {}-Target.csv'.format(i))
 
                     df=calculate_distribution(cluster_set.loc[cluster_set[col.TARGET]==0],
                                               target_set.loc[target_set[col.TARGET]==0])
-                    df.to_csv('Distribution Non Flaky Test Cluster {}-Target.csv'.format(i))
-                    mlflow.log_artifact('Distribution Non Flaky Test Cluster {}-Target.csv'.format(i),'Distribution Non Flaky Test Cluster {}-Target'.format(i))
+                    df.to_csv('Distribution Non Flaky Test Cluster {}-Target.csv'.format(i),index=False)
+                    mlflow.log_artifact('Distribution Non Flaky Test Cluster {}-Target.csv'.format(i),'Distribution')
                     os.remove('Distribution Non Flaky Test Cluster {}-Target.csv'.format(i))
 
                     df=calculate_distribution(cluster_set.loc[cluster_set[col.TARGET]==1],
                                               target_set.loc[target_set[col.TARGET]==1])
-                    df.to_csv('Distribution Flaky Test Cluster {}-Target.csv'.format(i))
-                    mlflow.log_artifact('Distribution Flaky Test Cluster {}-Target.csv'.format(i),'Distribution Flaky Test Cluster {}-Target'.format(i))
+                    df.to_csv('Distribution Flaky Test Cluster {}-Target.csv'.format(i),index=False)
+                    mlflow.log_artifact('Distribution Flaky Test Cluster {}-Target.csv'.format(i),'Distribution')
                     os.remove('Distribution Flaky Test Cluster {}-Target.csv'.format(i))
 
 
                     fi=features_importance(local_pip.get_params('steps')['model'])
-                    fi.to_csv('Feature Importances Classifier Cluster {}.csv'.format(i))
-                    mlflow.log_artifact('Feature Importances Classifier Cluster {}.csv'.format(i),'Feature Importances Classifier Cluster {}'.format(i))
+                    fi.to_csv('Feature Importances Classifier Cluster {}.csv'.format(i),index=False)
+                    mlflow.log_artifact('Feature Importances Classifier Cluster {}.csv'.format(i),'Feature Importances Classifier')
                     os.remove('Feature Importances Classifier Cluster {}.csv'.format(i))
 
 
@@ -141,10 +142,10 @@ def run(dataset, pipeline, experiment_ID):
                 for i in range(len(X_target_set)):
                     X_target_instance=X_target_set.iloc[i, ].to_numpy()
                     X_target_instance=X_target_instance.reshape(1,-1)
-                    index_cluster=km.predict(X=X_target_instance)
+                    index_cluster=km.predict(X=X_target_instance)[0]
                     indexs_cluster.append(index_cluster)
                     local_pip=local_model['Local pipeline'][int(index_cluster)]
-                    y_predict.append(local_pip.predict(X_target_instance))
+                    y_predict.append(local_pip.predict(X_target_instance)[0])
 
 
                 validation_utils.val_and_log_metrics(y_target_set,y_predict,'Target')
@@ -153,7 +154,7 @@ def run(dataset, pipeline, experiment_ID):
                 df['True Lable']=y_target_set
                 df['Predict Lable']=y_predict
                 df['Cluster']=indexs_cluster
-                df.to_csv('Target Predict Log.csv')
+                df.to_csv('Target Predict Log.csv',index=False)
                 mlflow.log_artifact('Target Predict Log.csv','Target Predict Log')
                 os.remove('Target Predict Log.csv')
 
