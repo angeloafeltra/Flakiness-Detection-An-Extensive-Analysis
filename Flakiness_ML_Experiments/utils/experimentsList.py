@@ -119,10 +119,7 @@ TUNING = [
 
 CROSS_PROJECT_EXPERIMENT=[
     (crossproject_classic, 'crossproject_classic'),
-    (crossproject_one_source, 'crossproject_classic_one_source'),
     (burakfilter, 'burak_filter'),
     (local_clustering, 'localmodel_clustering'),
     (local_repository, 'localmodel_repository'),
-    (crossproject_NSGRT, 'NSGRT'),
-    (TCA, 'TCA')
 ]

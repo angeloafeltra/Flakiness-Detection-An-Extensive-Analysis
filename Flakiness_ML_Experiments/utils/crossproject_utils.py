@@ -14,6 +14,7 @@ from sklearn.neighbors import KNeighborsClassifier
 
 
 import numpy as np
+import utils.columns as col
 from sklearn.utils import check_array
 from sklearn.metrics import pairwise
 from sklearn.metrics.pairwise import KERNEL_PARAMS
@@ -21,6 +22,55 @@ from scipy import linalg
 
 
 
+def calculate_distribution(source_set,target_set):
+
+    data={
+        'column':[],
+
+        'Mean_Source':[],
+        'STD_Source': [],
+        'Mean_Target':[],
+        'STD_Target': [],
+
+        'Min_Source':[],
+        'Max_Source': [],
+        'Min_Target':[],
+        'Max_Target': [],
+    }
+
+    for columnName in col.NUMERICAL_FEATURES:
+        data['column'].append(col)
+
+        data['Mean_Source'].append(source_set[columnName].mean())
+        data['STD_Source'].append(source_set[columnName].std())
+        data['Mean_Target'].append(target_set[columnName].mean())
+        data['STD_Target'].append(target_set[columnName].std())
+
+        data['Min_Source'].append(source_set[columnName].min())
+        data['Max_Source'].append(source_set[columnName].max())
+        data['Min_Target'].append(target_set[columnName].min())
+        data['Max_Target'].append(target_set[columnName].max())
+
+    df=pd.DataFrame(data)
+    return df
+
+
+
+def features_importance(clf, columns):
+
+    data={
+        'features': [],
+        'importance': []
+    }
+
+    importanceFeatures=clf.feature_importances_
+    indices = np.argsort(importanceFeatures)[::-1]
+    for i in indices:
+        data['features'].append(col.NUMERICAL_FEATURES[i])
+        data['importance'].append(importanceFeatures[i])
+
+    df=pd.DataFrame(data)
+    return df
 
 
 def dataset_generator(dataset):
@@ -353,4 +403,5 @@ class TCA():
         K = np.concatenate((Kss, Kst), axis=1)
 
         return K.dot(self.vectors_)
+
 

@@ -1,17 +1,11 @@
 import sys
-
-import pandas as pd
-import os
 import utils.columns as col
-import utils.experimentsList as experimentList
 import mlflow
-import warnings
-import pickle
 import utils.validation_utils as validation_utils
-from yellowbrick.cluster import KElbowVisualizer
-from sklearn.cluster import KMeans
 import copy
 import numpy as np
+import pandas as pd
+import os
 
 
 def euclidean(point, data):
@@ -23,15 +17,17 @@ def run(dataset, pipeline, experiment_ID):
     list_project=dataset['nameProject'].unique()
 
     with mlflow.start_run(run_name='CrossProject_LocalModel_Repository',experiment_id= experiment_ID) as father_run:
-        for project in list_project:
-            print(project)
-            with mlflow.start_run(run_name=project,experiment_id=experiment_ID,nested=True) as child_run:
-                train_set=dataset.loc[dataset['nameProject']!=project].reset_index(drop=True)
-                test_set=dataset.loc[dataset['nameProject']==project].reset_index(drop=True)
+
+        for target in list_project:
+            print(target)
+
+            with mlflow.start_run(run_name=target,experiment_id=experiment_ID,nested=True) as child_run:
+                source_set=dataset.loc[dataset[col.CATEGORICAL_FEATURES[0]]!=target].reset_index(drop=True)
+                target_set=dataset.loc[dataset[col.CATEGORICAL_FEATURES[0]]==target].reset_index(drop=True)
 
 
-                X_test_set = test_set.drop([col.TARGET] + col.CATEGORICAL_FEATURES, axis = 1)
-                y_test_set = test_set[col.TARGET]
+                X_target_set = target_set.drop([col.TARGET] + col.CATEGORICAL_FEATURES, axis = 1)
+                y_target_set = target_set[col.TARGET]
 
                 local_model={
                     'Repository': [],
@@ -41,16 +37,16 @@ def run(dataset, pipeline, experiment_ID):
 
                 #1. Calcolo il centroide di ogni repository e addestro un modello per ogni repository
                 centroid=[]
-                for repo in train_set['nameProject'].unique():
-                    repo_set=train_set.loc[train_set['nameProject']==repo]
-                    X_repo_set=repo_set.drop([col.TARGET] + col.CATEGORICAL_FEATURES, axis=1)
-                    y_repo_set=repo_set[col.TARGET]
+                for repo in source_set[col.CATEGORICAL_FEATURES[0]].unique():
+                    subsource_set=source_set.loc[source_set[col.CATEGORICAL_FEATURES[0]]==repo]
+                    X_subsource_set=subsource_set.drop([col.TARGET] + col.CATEGORICAL_FEATURES, axis=1)
+                    y_subsource_set=subsource_set[col.TARGET]
 
-                    for (columnName, columnData) in X_repo_set.iteritems():
-                        centroid.append(X_repo_set[columnName].mean())
+                    for columnName in X_subsource_set.columns:
+                        centroid.append(X_subsource_set[columnName].mean())
 
                     local_pip=copy.copy(pipeline)
-                    local_pip.fit(X=X_repo_set,y=y_repo_set)
+                    local_pip.fit(X=X_subsource_set,y=y_subsource_set)
 
                     local_model['Repository'].append(repo)
                     local_model['Centroid'].append(copy.copy(centroid))
@@ -61,19 +57,22 @@ def run(dataset, pipeline, experiment_ID):
 
                 #2. Per ogni campione identifico la repo e eseguo la prediction
                 y_predict=[]
-                for i in range(len(X_test_set)):
-                    row=X_test_set.iloc[i, ].to_numpy()
-                    row=row.reshape(1,26)
-                    distances = euclidean(row, local_model['Centroid'])
+                for i in range(len(X_target_set)):
+                    target_instance=X_target_set.iloc[i, ].to_numpy()
+                    target_instance=target_instance.reshape(1,-1)
+                    distances = euclidean(target_instance, local_model['Centroid'])
                     index_repo=np.argmin(distances,axis=0)
-                    y_predict.append(local_model['Local pipeline'][index_repo].predict(row))
+                    y_predict.append(local_model['Local pipeline'][index_repo].predict(target_instance))
 
 
-
-                mlflow.log_metric("Test Flaky", len(test_set[test_set['isFlaky']==1]))
-                mlflow.log_metric("Test Non Flaky", len(test_set[test_set['isFlaky']==0]))
-                print("TF:{} - TNF:{}".format(len(test_set[test_set['isFlaky']==1]), len(test_set[test_set['isFlaky']==0])))
-                validation_utils.val_and_log_metrics(y_test_set,y_predict)
+                validation_utils.val_and_log_metrics(y_target_set,y_predict,'Target')
+                df=pd.DataFrame()
+                df['True Lable']=y_target_set
+                df['Predict Lable']=y_predict
+                df['Repository']=local_model['Repository'][index_repo]
+                df.to_csv('Target Predict Log.csv')
+                mlflow.log_artifact('Target Predict Log.csv','Target Predict Log')
+                os.remove('Target Predict Log.csv')
 
 
 

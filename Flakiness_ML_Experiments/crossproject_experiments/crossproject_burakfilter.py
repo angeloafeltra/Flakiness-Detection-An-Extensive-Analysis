@@ -1,10 +1,15 @@
 import sys
+
+import pandas as pd
+
 import utils.columns as col
 import mlflow
 import utils.validation_utils as validation_utils
 from utils.burak_utils import classic_burakFilter
 import numpy as np
 from sklearn.model_selection import train_test_split
+from utils.crossproject_utils import calculate_distribution, features_importance
+import os
 
 def run(dataset, pipeline, experiment_ID):
 
@@ -42,15 +47,21 @@ def run(dataset, pipeline, experiment_ID):
                 y_source_set = source_set[col.TARGET]
 
 
-
                 X_target_set = target_set.drop([col.TARGET] + col.CATEGORICAL_FEATURES, axis = 1)
                 y_target_set = target_set[col.TARGET]
 
 
-                X_burak, y_burak =  classic_burakFilter(X_source_set.to_numpy(),
-                                                                    y_source_set.to_numpy(),
-                                                                    X_target_set.to_numpy(),
-                                                                    10)
+                X_burak, y_burak, TF_countTF, TF_countTNF, TNF_countTF, TNF_countTNF =  classic_burakFilter(X_source_set.to_numpy(),
+                                                                                                            y_source_set.to_numpy(),
+                                                                                                            X_target_set.to_numpy(),
+                                                                                                            10)
+                #Log per explenability
+                mlflow.log_metric("TF selezionati da istanze Flaky",TF_countTF)
+                mlflow.log_metric("TNF selezionati da istanze Flaky", TF_countTNF)
+                mlflow.log_metric("TNF selezionati da istanze non Flaky", TNF_countTNF)
+                mlflow.log_metric("TF selezionati da istanze non Flaky", TNF_countTF)
+
+                burak_set=pd.concat([X_burak,y_burak],axis=1)
 
                 burak_TF=np.count_nonzero(y_burak)
                 burak_TNF=y_burak.size - burak_TF
@@ -77,6 +88,30 @@ def run(dataset, pipeline, experiment_ID):
                 validation_utils.val_and_log_metrics(y_burak_test,y_predict,'Burak')
                 y_predict=pipeline.predict(X_target_set)
                 validation_utils.val_and_log_metrics(y_target_set,y_predict,'Target')
+
+                #Explenability
+                df=calculate_distribution(burak_set,target_set)
+                df.to_csv('Distribution Source(Burak)-Target.csv')
+                mlflow.log_artifact('Distribution Source(Burak)-Target.csv','Distribution Source(Burak)-Target')
+                os.remove('Distribution Source(Burak)-Target.csv')
+
+                df=calculate_distribution(burak_set.loc[burak_set[col.TARGET]==0],
+                                          target_set.loc[target_set[col.TARGET]==0])
+                df.to_csv('Distribution Non Flaky Test Source(Burak)-Target.csv')
+                mlflow.log_artifact('Distribution Non Flaky Test Source(Burak)-Target.csv','Distribution Non Flaky Test Source(Burak)-Target')
+                os.remove('Distribution Non Flaky Test Source(Burak)-Target.csv')
+
+                df=calculate_distribution(burak_set.loc[burak_set[col.TARGET]==1],
+                                          target_set.loc[target_set[col.TARGET]==1])
+                df.to_csv('Distribution Flaky Test Source(Burak)-Target.csv')
+                mlflow.log_artifact('Distribution Flaky Test Source(Burak)-Target.csv','Distribution Flaky Test Source(Burak)-Target')
+                os.remove('Distribution Flaky Test Source(Burak)-Target.csv')
+
+
+                fi=features_importance(pipeline.get_params('steps')['model'])
+                fi.to_csv('Feature Importances Classifier.csv')
+                mlflow.log_artifact('Feature Importances Classifier.csv','Feature Importances Classifier')
+                os.remove('Feature Importances Classifier.csv')
 
 
 
