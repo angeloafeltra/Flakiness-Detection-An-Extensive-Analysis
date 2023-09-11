@@ -110,6 +110,8 @@ def run(datasetName):
         validation_utils.val_and_log_metrics(y_test_set,y_predict)
         mlflow.set_tag("Best Pipeline","Best Pipeline")
 
+        validation_utils.soa_validation(dataset,pipeline)
+
 
 
 
