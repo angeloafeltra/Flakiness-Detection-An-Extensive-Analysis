@@ -10,6 +10,7 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 from utils.crossproject_utils import calculate_distribution, features_importance
 import os
+from utils.eval_utils import eval_and_log_metrics
 
 def run(dataset, pipeline, experiment_ID):
 
@@ -34,8 +35,8 @@ def run(dataset, pipeline, experiment_ID):
 
                 mlflow.log_metric("Source Test Flaky", source_TF)
                 mlflow.log_metric("Source Test Non Flaky", source_TNF)
-                mlflow.log_metric("Target Test Flaky", source_TF)
-                mlflow.log_metric("Target Test Non Flaky", source_TNF)
+                mlflow.log_metric("Target Test Flaky", target_TF)
+                mlflow.log_metric("Target Test Non Flaky", target_TNF)
 
 
 
@@ -67,8 +68,8 @@ def run(dataset, pipeline, experiment_ID):
                 burak_TF=np.count_nonzero(y_burak)
                 burak_TNF=y_burak.size - burak_TF
 
-                mlflow.log_metric("Target Test Flaky", source_TF)
-                mlflow.log_metric("Target Test Non Flaky", source_TNF)
+                mlflow.log_metric("Burak Test Flaky", burak_TF)
+                mlflow.log_metric("Burak Test Non Flaky", burak_TNF)
 
                 print("Source TF:{} - TNF:{}\nTarget TF:{} - TNF:{}\nBurak_Set TF:{} - TNF:{}".format(source_TF,
                                                                                                         source_TNF,
@@ -83,10 +84,15 @@ def run(dataset, pipeline, experiment_ID):
                                                                                                 test_size = 0.2,
                                                                                                 random_state = 42)
                     pipeline.fit(X_burak_train,y_burak_train)
+                    y_predict=pipeline.predict(X_burak_train)
+                    eval_and_log_metrics("Burak Train",y_burak_train,y_predict)
+
                     y_predict=pipeline.predict(X_burak_test)
                     validation_utils.val_and_log_metrics(y_burak_test,y_predict,'Burak')
                 else:
                     pipeline.fit(X_burak,y_burak)
+                    y_predict=pipeline.predict(X_burak)
+                    eval_and_log_metrics("Burak Train",y_burak,y_predict)
 
                 y_predict=pipeline.predict(X_target_set)
                 validation_utils.val_and_log_metrics(y_target_set,y_predict,'Target')

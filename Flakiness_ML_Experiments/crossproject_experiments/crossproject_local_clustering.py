@@ -12,6 +12,7 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 from utils.crossproject_utils import calculate_distribution, features_importance
 import os
+from utils.eval_utils import eval_and_log_metrics
 
 def run(dataset, pipeline, experiment_ID):
 
@@ -36,8 +37,8 @@ def run(dataset, pipeline, experiment_ID):
 
                 mlflow.log_metric("Source Test Flaky", source_TF)
                 mlflow.log_metric("Source Test Non Flaky", source_TNF)
-                mlflow.log_metric("Target Test Flaky", source_TF)
-                mlflow.log_metric("Target Test Non Flaky", source_TNF)
+                mlflow.log_metric("Target Test Flaky", target_TF)
+                mlflow.log_metric("Target Test Non Flaky", target_TNF)
 
                 print("Source TF:{} - TNF:{}\nTarget TF:{} - TNF:{} ".format(source_TF,
                                                                               source_TNF,
@@ -102,12 +103,15 @@ def run(dataset, pipeline, experiment_ID):
 
                     local_pip=copy.copy(pipeline)
                     local_pip.fit(X_cluster_train,y_cluster_train)
+                    y_predict=local_pip.predict(X_cluster_train)
+                    eval_and_log_metrics("Cluster {} ".format(i),y_cluster_train,y_predict)
+
                     y_predict=local_pip.predict(X_cluster_test)
                     validation_utils.val_and_log_metrics(y_cluster_test,y_predict,'Cluster {}'.format(i))
 
                     local_model['Index_Cluster'].append(i)
                     local_model['X_cluster'].append(X_cluster_set)
-                    local_model['y_cluster'].append(X_cluster_set)
+                    local_model['y_cluster'].append(y_cluster_set)
                     local_model['Local pipeline'].append(copy.copy(local_pip))
 
                     #Explenability Cluster
