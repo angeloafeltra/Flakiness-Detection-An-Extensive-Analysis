@@ -28,6 +28,14 @@ def run(dataset, pipeline, experiment_ID):
             print("Target: ",target)
 
             #Inserire qui il criterio di filtraggio per skippare il target
+            tmp=dataset.loc[dataset[col.CATEGORICAL_FEATURES[0]]==target]
+            testFlaky=len(tmp[tmp[col.TARGET]==1])
+            testNonFlaky=len(tmp[tmp[col.TARGET]==0])
+
+            if testFlaky<20 or testFlaky>testNonFlaky:
+                print("La repository non rispetta i criteri")
+                continue
+
 
             with mlflow.start_run(run_name=target, experiment_id=experiment_ID, nested=True) as child_run:
 
