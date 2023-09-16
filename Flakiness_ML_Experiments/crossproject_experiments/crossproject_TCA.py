@@ -63,7 +63,7 @@ def run(dataset, pipeline, experiment_ID):
                 X_burak, y_burak, _ , _ , _ , _ =  classic_burakFilter(X_source_set.to_numpy(),
                                                                         y_source_set.to_numpy(),
                                                                         X_target_set.to_numpy(),
-                                                                        10,
+                                                                        40,
                                                                         y_target_set.to_numpy())
 
 
@@ -104,7 +104,7 @@ def run(dataset, pipeline, experiment_ID):
                     print("Eseguo la tca...")
                     X_tca_train=tca.fit_transform(X_burak_train,X_target_set)
 
-                    tca_set=np.insert(X_tca_train, -1, y_burak_train.to_numpy(), axis=1)
+                    tca_set=np.insert(X_tca_train, -1, y_burak_train, axis=1)
                     columns=[]
                     columns=columns+col.NUMERICAL_FEATURES
                     columns.append(col.TARGET)
@@ -122,7 +122,7 @@ def run(dataset, pipeline, experiment_ID):
                     X_tca_test=tca.transform(X_burak_test)
                     #Faccio la predict su test
                     y_predict=clf.predict(X_tca_test)
-                    validation_utils.val_and_log_metrics(y_burak_test,y_predict,'Source (TCA)')
+                    validation_utils.val_and_log_metrics(y_burak_test,y_predict,'Source TCA')
 
                 else:
                     X_burak=std.fit_transform(X_burak)
@@ -146,6 +146,7 @@ def run(dataset, pipeline, experiment_ID):
 
                 #Eseguo la TCA sul target
                 X_target_set=std.transform(X_target_set)
+                print("Eseguo la tca su target...")
                 X_target_tca=tca.transform(X_target_set)
 
                 target_tca_set=np.insert(X_target_tca, -1, y_target_set.to_numpy(), axis=1)
@@ -156,8 +157,8 @@ def run(dataset, pipeline, experiment_ID):
 
 
 
-                y_predict=clf.predict(X_target_tca,y_target_set)
-                validation_utils.val_and_log_metrics(y_target_set,y_predict,'Target (TCA)')
+                y_predict=clf.predict(X_target_tca)
+                validation_utils.val_and_log_metrics(y_target_set,y_predict,'Target TCA')
 
 
                 #Explenability

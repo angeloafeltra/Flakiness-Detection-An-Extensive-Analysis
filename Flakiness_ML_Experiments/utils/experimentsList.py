@@ -24,6 +24,7 @@ import crossproject_experiments.crossproject_local_clustering as local_clusterin
 import crossproject_experiments.crossproject_local_repository as local_repository
 import crossproject_experiments.crossproject_NSGRT as crossproject_NSGRT
 import crossproject_experiments.crossproject_TCA as TCA
+import crossproject_experiments.crossprojet_MIC_SM_FS as MIC_SM_FS
 
 
 from sklearn.neighbors import KNeighborsClassifier
@@ -122,4 +123,6 @@ CROSS_PROJECT_EXPERIMENT=[
     (burakfilter, 'burak_filter'),
     (local_clustering, 'localmodel_clustering'),
     (local_repository, 'localmodel_repository'),
+    (TCA, 'TCA'),
+    (MIC_SM_FS, 'MIC_SM_FS')
 ]

@@ -13,6 +13,7 @@ import numpy as np
 from utils.crossproject_utils import NSGRT_PreProcessing
 from utils.crossproject_utils import RareTransfer
 from sklearn.model_selection import train_test_split
+from adapt.instance_based import TrAdaBoost
 
 def run(dataset, pipeline, experiment_ID):
 

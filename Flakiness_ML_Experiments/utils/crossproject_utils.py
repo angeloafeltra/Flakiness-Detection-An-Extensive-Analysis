@@ -73,105 +73,66 @@ def features_importance(clf):
     return df
 
 
-def dataset_generator(dataset):
+def feature_similarity(source, target):
+    fs=[]
+    tmp1_source=[]
+    tmp2_target=[]
+    for column in col.NUMERICAL_FEATURES:
+        tmpS=[]
+        tmpT=[]
 
-    SPE_DATA={
-        'source': [],
-        'target': [],
-        "source_tloc": [],
-        "source_tmcCabe": [],
-        "source_assertionDensity": [],
-        "source_assertionRoulette": [],
-        "source_mysteryGuest": [],
-        "source_eagerTest": [],
-        "source_sensitiveEquality": [],
-        "source_resourceOptimism": [],
-        "source_conditionalTestLogic": [],
-        "source_fireAndForget": [],
-        "source_testRunWar": [],
-        "source_loc": [],
-        "source_lcom2": [],
-        "source_lcom5": [],
-        "source_cbo": [],
-        "source_wmc": [],
-        "source_rfc": [],
-        "source_mpc": [],
-        "source_halsteadVocabulary": [],
-        "source_halsteadLength": [],
-        "source_halsteadVolume": [],
-        "source_classDataShouldBePrivate": [],
-        "source_complexClass": [],
-        "source_spaghettiCode": [],
-        "source_functionalDecomposition": [],
-        "source_godClass": [],
-        "target_tloc": [],
-        "target_tmcCabe": [],
-        "target_assertionDensity": [],
-        "target_assertionRoulette": [],
-        "target_mysteryGuest": [],
-        "target_eagerTest": [],
-        "target_sensitiveEquality": [],
-        "target_resourceOptimism": [],
-        "target_conditionalTestLogic": [],
-        "target_fireAndForget": [],
-        "target_testRunWar": [],
-        "target_loc": [],
-        "target_lcom2": [],
-        "target_lcom5": [],
-        "target_cbo": [],
-        "target_wmc": [],
-        "target_rfc": [],
-        "target_mpc": [],
-        "target_halsteadVocabulary": [],
-        "target_halsteadLength": [],
-        "target_halsteadVolume": [],
-        "target_classDataShouldBePrivate": [],
-        "target_complexClass": [],
-        "target_spaghettiCode": [],
-        "target_functionalDecomposition": [],
-        "target_godClass": [],
-        'f1-score': [],
-    }
+        #Min
+        tmpS.append(source[column].min())
+        tmpT.append(target[column].min())
+        #Max
+        tmpS.append(source[column].max())
+        tmpT.append(target[column].max())
+        #Range
+        tmpS.append(source[column].max() - source[column].min())
+        tmpT.append(target[column].max() - target[column].min())
+        #Inter-quantile range
+        quantileS=source[column].quantile([0.25, 0.75])
+        tmpS.append(quantileS[0.75] - quantileS[0.25])
+        quantileT=source[column].quantile([0.25, 0.75])
+        tmpT.append(quantileT[0.75] - quantileT[0.25])
+        #mean
+        tmpS.append(source[column].mean())
+        tmpT.append(target[column].mean())
+        #median
+        tmpS.append(source[column].median())
+        tmpT.append(target[column].median())
+        #variance
+        tmpS.append(source[column].var())
+        tmpT.append(target[column].var())
+        #standard deivation
+        tmpS.append(source[column].std())
+        tmpT.append(target[column].std())
+        #skewness
+        tmpS.append(source[column].skew())
+        tmpT.append(target[column].skew())
+        #kurtosis
+        tmpS.append(source[column].kurtosis())
+        tmpT.append(target[column].kurtosis())
 
-    list_project=dataset['nameProject'].unique()
-    for source_project in list_project:
-        h_source_project=dataset.loc[dataset['nameProject']==source_project]
-        target_projects=dataset.loc[dataset['nameProject']!=source_project]
-
-        for target_project in target_projects['nameProject'].unique():
-            h_target_project=dataset.loc[dataset['nameProject']==target_project]
-
-            X_source_set = h_source_project.drop([col.TARGET] + col.CATEGORICAL_FEATURES, axis = 1)
-            y_source_set = h_source_project[col.TARGET]
-
-            X_target_set = h_target_project.drop([col.TARGET] + col.CATEGORICAL_FEATURES, axis = 1)
-            y_target_set = h_target_project[col.TARGET]
-
-            print("Source: {} - Target: {}".format(source_project, target_project))
-
-            SPE_DATA['source'].append(source_project)
-            SPE_DATA['target'].append(target_project)
-
-            for (columnName, columnData) in X_source_set.iteritems():
-                SPE_DATA['source_{}'.format(columnName)].append(X_source_set[columnName].mean())
-                SPE_DATA['target_{}'.format(columnName)].append(X_target_set[columnName].mean())
-
-            std=StandardScaler()
-            X_source_set_std=std.fit_transform(X_source_set)
-            X_target_set_std=std.transform(X_target_set)
-
-            #model=TCA(LogisticRegression(class_weight='balanced', random_state=42), Xt=X_target_set_std)
-            model.fit(X_source_set_std, y_source_set)
-            y_predict=model.predict(X_target_set_std)
-            acc, pr, rec, f1, tn, fp, fn, tp=validation_utils.val_and_log_metrics(y_target_set,y_predict)
-
-            SPE_DATA['f1-score'].append(f1)
-
-    df = pd.DataFrame(data=SPE_DATA)
-    df.to_csv('FlakeFlagger_SPE_dataset.csv', index=True)
-    return df
+        tmp1_source.append(tmpS)
+        tmp2_target.append(tmpT)
 
 
+    for i in range(0,len(col.NUMERICAL_FEATURES)):
+        somma=0
+        for j in range(0, len(tmp1_source[0])):
+            if tmp1_source[i][j]==0 and tmp2_target[i][j]==0:
+                m=1
+            else:
+                if tmp1_source[i][j]<=tmp2_target[i][j]:
+                    m=tmp1_source[i][j]/tmp2_target[i][j]
+                else:
+                    m=tmp2_target[i][j]/tmp1_source[i][j]
+            somma=somma+m
+
+        fs.append(somma/len(tmp1_source[0]))
+
+    return fs
 
 class NSGRT_PreProcessing:
 
@@ -317,91 +278,5 @@ class RareTransfer:
     def predict(self,X):
         y_predict=self.clf.predict(X)
         return y_predict
-
-
-class TCA():
-
-
-    def __init__(self,
-                 Xt=None,
-                 n_components=20,
-                 mu=0.1,
-                 kernel="rbf",
-                 copy=True,
-                 verbose=1,
-                 random_state=42):
-
-        self.Xt=Xt
-        self.n_components=n_components
-        self.mu=mu
-        self.kernel=kernel
-        self.copy=copy
-        self.verbose=verbose
-        self.random_state=random_state
-
-
-
-    def fit_transform(self, Xs, Xt):
-
-        Xs = check_array(Xs)
-        Xt = check_array(Xt)
-
-        self.Xs_ = Xs
-        self.Xt_ = Xt
-
-        n = len(Xs)
-        m = len(Xt)
-
-        # Compute Kernel Matrix K
-        kernel_params = {k: v for k, v in self.__dict__.items()
-                         if k in KERNEL_PARAMS[self.kernel]}
-
-        Kss = pairwise.pairwise_kernels(Xs, Xs, metric=self.kernel, **kernel_params)
-        Ktt = pairwise.pairwise_kernels(Xt, Xt, metric=self.kernel, **kernel_params)
-        Kst = pairwise.pairwise_kernels(Xs, Xt, metric=self.kernel, **kernel_params)
-
-        K = np.concatenate((Kss, Kst), axis=1)
-        K = np.concatenate((K, np.concatenate((Kst.transpose(), Ktt), axis=1)), axis=0)
-
-        # Compute L
-        Lss = np.ones((n,n)) * (1./(n**2))
-        Ltt = np.ones((m,m)) * (1./(m**2))
-        Lst = np.ones((n,m)) * (-1./(n*m))
-
-        L = np.concatenate((Lss, Lst), axis=1)
-        L = np.concatenate((L, np.concatenate((Lst.transpose(), Ltt), axis=1)), axis=0)
-
-        # Compute H
-        H = np.eye(n+m) - 1/(n+m) * np.ones((n+m, n+m))
-
-        # Compute solution
-        a = np.eye(n+m) + self.mu * K.dot(L.dot(K))
-        b = K.dot(H.dot(K))
-        sol = linalg.lstsq(a, b)[0]
-
-        values, vectors = linalg.eigh(sol)
-
-        args = np.argsort(np.abs(values))[::-1][:self.n_components]
-
-        self.vectors_ = np.real(vectors[:, args])
-
-        Xs_enc = K.dot(self.vectors_)[:n]
-
-        return Xs_enc
-
-
-    def transform(self, X, domain="tgt"):
-
-        X = check_array(X)
-
-        kernel_params = {k: v for k, v in self.__dict__.items()
-                         if k in KERNEL_PARAMS[self.kernel]}
-
-        Kss = pairwise.pairwise_kernels(X, self.Xs_, metric=self.kernel, **kernel_params)
-        Kst = pairwise.pairwise_kernels(X, self.Xt_, metric=self.kernel, **kernel_params)
-
-        K = np.concatenate((Kss, Kst), axis=1)
-
-        return K.dot(self.vectors_)
 
 
