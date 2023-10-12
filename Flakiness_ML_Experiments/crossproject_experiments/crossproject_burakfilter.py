@@ -8,16 +8,16 @@ import utils.validation_utils as validation_utils
 from utils.burak_utils import classic_burakFilter
 import numpy as np
 from sklearn.model_selection import train_test_split
-from utils.crossproject_utils import calculate_distribution, features_importance
 import os
 from utils.eval_utils import eval_and_log_metrics
+from utils.explenability_utils import log_distribution, log_featureImportance
 
 def run(dataset, pipeline, experiment_ID):
 
 
     list_project=dataset[col.CATEGORICAL_FEATURES[0]].unique()
 
-    with mlflow.start_run(run_name='CrossProject_BurakFilter',experiment_id= experiment_ID) as father_run:
+    with mlflow.start_run(run_name='CrossProject_BurakFilter (CPBF)',experiment_id= experiment_ID) as father_run:
 
         for target in list_project:
 
@@ -30,7 +30,8 @@ def run(dataset, pipeline, experiment_ID):
                 print("La repository non rispetta i criteri")
                 continue
 
-            with mlflow.start_run(run_name=target,experiment_id=experiment_ID,nested=True) as child_run:
+            repository_name=target.split('_')[0]
+            with mlflow.start_run(run_name="CPBF_{}".format(repository_name),experiment_id=experiment_ID,nested=True) as child_run:
 
                 source_set=dataset.loc[dataset[col.CATEGORICAL_FEATURES[0]]!=target]
                 target_set=dataset.loc[dataset[col.CATEGORICAL_FEATURES[0]]==target]
@@ -85,6 +86,9 @@ def run(dataset, pipeline, experiment_ID):
                                                                                                         burak_TF,
                                                                                                         burak_TNF))
 
+
+                if burak_TF<6: continue
+
                 if burak_TF>=2:
                     X_burak_train, X_burak_test, y_burak_train, y_burak_test = train_test_split(X_burak, y_burak,
                                                                                                 stratify = y_burak,
@@ -92,45 +96,36 @@ def run(dataset, pipeline, experiment_ID):
                                                                                                 random_state = 42)
                     pipeline.fit(X_burak_train,y_burak_train)
                     y_predict=pipeline.predict(X_burak_train)
-                    eval_and_log_metrics("Burak Train",y_burak_train,y_predict)
+                    eval_and_log_metrics("CP_Source_Train",y_burak_train,y_predict)
 
                     y_predict=pipeline.predict(X_burak_test)
-                    validation_utils.val_and_log_metrics(y_burak_test,y_predict,'Burak')
+                    validation_utils.val_and_log_metrics(y_burak_test,y_predict,'CP_Source_Test')
                 else:
                     pipeline.fit(X_burak,y_burak)
                     y_predict=pipeline.predict(X_burak)
-                    eval_and_log_metrics("Burak Train",y_burak,y_predict)
+                    eval_and_log_metrics("CP_Source_Train",y_burak,y_predict)
 
                 y_predict=pipeline.predict(X_target_set)
-                validation_utils.val_and_log_metrics(y_target_set,y_predict,'Target')
+                validation_utils.val_and_log_metrics(y_target_set,y_predict,'CP_Target')
 
                 #Explenability
-                df=calculate_distribution(burak_set,target_set)
-                df.to_csv('Distribution Source(Burak)-Target.csv',index=False)
-                mlflow.log_artifact('Distribution Source(Burak)-Target.csv','Distribution')
-                os.remove('Distribution Source(Burak)-Target.csv')
-
-                df=calculate_distribution(burak_set.loc[burak_set[col.TARGET]==0],
-                                          target_set.loc[target_set[col.TARGET]==0])
-                df.to_csv('Distribution Non Flaky Test Source(Burak)-Target.csv',index=False)
-                mlflow.log_artifact('Distribution Non Flaky Test Source(Burak)-Target.csv','Distribution')
-                os.remove('Distribution Non Flaky Test Source(Burak)-Target.csv')
-
-                df=calculate_distribution(burak_set.loc[burak_set[col.TARGET]==1],
-                                          target_set.loc[target_set[col.TARGET]==1])
-                df.to_csv('Distribution Flaky Test Source(Burak)-Target.csv',index=False)
-                mlflow.log_artifact('Distribution Flaky Test Source(Burak)-Target.csv','Distribution')
-                os.remove('Distribution Flaky Test Source(Burak)-Target.csv')
-
-
-                fi=features_importance(pipeline.get_params('steps')['model'])
-                fi.to_csv('Feature Importances Classifier.csv',index=False)
-                mlflow.log_artifact('Feature Importances Classifier.csv','Feature Importances Classifier')
-                os.remove('Feature Importances Classifier.csv')
-
-
-
-
+                log_distribution(burak_set, 'Distribution Source(Burak).csv', 'Distribution')
+                log_distribution(target_set, 'Distribution Target.csv', 'Distribution')
+                log_distribution(burak_set.loc[burak_set[col.TARGET]==0],
+                                 'Distribution Non Flaky Test Source(Burak).csv',
+                                 'Distribution')
+                log_distribution(target_set.loc[target_set[col.TARGET]==0],
+                                 'Distribution Non Flaky Test Target.csv',
+                                 'Distribution')
+                log_distribution(burak_set.loc[burak_set[col.TARGET]==1],
+                                 'Distribution Flaky Test Source(Burak).csv',
+                                 'Distribution')
+                log_distribution(target_set.loc[target_set[col.TARGET]==1],
+                                 'Distribution Flaky Test Target.csv',
+                                 'Distribution')
+                log_featureImportance(pipeline.get_params('steps')['model'],
+                                      'Feature Importances Classifier.csv',
+                                      'Feature Importances Classifier')
 
 
 

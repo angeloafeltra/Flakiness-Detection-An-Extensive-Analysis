@@ -16,7 +16,6 @@ import utils.columns as col
 
 
 
-
 def val_and_log_metrics(y_true, y_predict, prefix="TEST"):
 
     acc = accuracy_score(y_true, y_predict)
@@ -164,3 +163,40 @@ def soa_validation(dataset, pipeline):
 
     print('AUC Mean: {}'.format(np.mean(auc_fold)))
     mlflow.log_metric("AUC mean",np.mean(auc_fold))
+
+
+
+def val_metrics(y_true, y_predict):
+
+    acc = accuracy_score(y_true, y_predict)
+    pr = precision_score(y_true, y_predict)
+    rec = recall_score(y_true, y_predict)
+    f1 = f1_score(y_true, y_predict)
+    auc = roc_auc_score(y_true, y_predict)
+    tn, fp, fn, tp = confusion_matrix(y_true, y_predict).ravel()
+
+    return acc, pr, rec, f1, tn, fp, fn, tp, auc
+
+
+
+
+def log_val_metrics(acc, pr, rec, f1, tn, fp, fn, tp, auc, prefix="TEST"):
+
+    print("    |--- {}_ACC".format(prefix), acc)
+    print("    |--- {}_PR".format(prefix), pr)
+    print("    |--- {}_REC".format(prefix), rec)
+    print("    |--- {}_F1".format(prefix), f1)
+
+
+    mlflow.log_metric("{}_ACC".format(prefix), acc)
+    mlflow.log_metric("{}_PR".format(prefix), pr)
+    mlflow.log_metric("{}_REC".format(prefix), rec)
+    mlflow.log_metric("{}_F1".format(prefix), f1)
+
+    mlflow.log_metric("{}_AUC".format(prefix), auc)
+    mlflow.log_metric("{}_TN".format(prefix), tn)
+    mlflow.log_metric("{}_FP".format(prefix), fp)
+    mlflow.log_metric("{}_FN".format(prefix), fn)
+    mlflow.log_metric("{}_TP".format(prefix), tp)
+
+

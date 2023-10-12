@@ -18,7 +18,7 @@ def run(X_train_set, y_train_set, X_val_set, y_val_set, pipelineName, experiment
                 print("|--- {}".format(clf.__class__.__name__))
                 pipeline = Pipeline(steps = [('scaler', MinMaxScaler()),
                                                 ('PCA', DimensionalityReduction()),
-                                                ('SMOTE', SMOTE(sampling_strategy='auto')),
+                                                ('SMOTE', SMOTE(sampling_strategy='auto',random_state=42,k_neighbors=4)),
                                                 ("model", clf)])
                 pipeline.fit(X=X_train_set, y=y_train_set)
                 y_pred=pipeline.predict(X=X_train_set)

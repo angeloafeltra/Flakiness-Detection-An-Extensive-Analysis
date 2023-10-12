@@ -37,16 +37,20 @@ def classic_burakFilter(X_source, y_source, X_target, k, y_target=None):
 
     return np.asanyarray(Xdata), np.asarray(ydata), TF_countTF, TF_countTNF, TNF_countTF, TNF_countTNF
 
-def supervisioned_burakFilter(sources_set,target_set,k):
-    source_set=np.empty((0, sources_set.shape[1]))
-    count=0
-    for x in target_set:
-        indici_selezionati = sources_set[:, 24] == x[24]
-        sottomatrice = sources_set[indici_selezionati]
+def supervisioned_burakFilter(Xsource,ysource,Xtarget,ytarget,k):
 
-        distances = euclidean(x, sottomatrice)
+
+    Xdata=[]
+    ydata=[]
+
+    for instance,label in zip(Xtarget,ytarget):
+        indici_selezionati = ysource[:] == label
+        sottomatrice = Xsource[indici_selezionati]
+        distances = euclidean(instance, sottomatrice)
         indici_ordinati = np.argsort(distances)
         sottomatrice_sorted = sottomatrice[indici_ordinati]
-        source_set=np.concatenate((source_set, sottomatrice_sorted[:k, :]), axis=0)
-
-    return source_set
+        for neighbor in sottomatrice_sorted[0:k]:
+            if not list(neighbor) in Xdata:
+                Xdata.append(list(neighbor))
+                ydata.append(label)
+    return np.asanyarray(Xdata), np.asarray(ydata)

@@ -4,17 +4,19 @@ import mlflow
 import utils.validation_utils as validation_utils
 from utils.eval_utils import eval_and_log_metrics
 from sklearn.model_selection import train_test_split
-from utils.crossproject_utils import calculate_distribution, features_importance
-import os
+from utils.explenability_utils import log_distribution,log_featureImportance
+
+
 
 def run(dataset, pipeline, experiment_ID):
 
     list_project = dataset[col.CATEGORICAL_FEATURES[0]].unique()
 
-    with mlflow.start_run(run_name= 'CrossProject_Classic',experiment_id= experiment_ID) as father_run:
+    with mlflow.start_run(run_name= 'CrossProject_Classic (CPC)',experiment_id= experiment_ID) as father_run:
 
         for target in list_project:
             print("Target: ",target)
+
 
             #Inserire qui il criterio di filtraggio per skippare il target
             tmp=dataset.loc[dataset[col.CATEGORICAL_FEATURES[0]]==target]
@@ -25,7 +27,8 @@ def run(dataset, pipeline, experiment_ID):
                 print("La repository non rispetta i criteri")
                 continue
 
-            with mlflow.start_run(run_name=target,experiment_id=experiment_ID,nested=True) as child_run:
+            repository_name=target.split('_')[0]
+            with mlflow.start_run(run_name="CPC_{}".format(repository_name),experiment_id=experiment_ID,nested=True) as child_run:
                 source_set=dataset.loc[dataset[col.CATEGORICAL_FEATURES[0]]!=target]
                 target_set=dataset.loc[dataset[col.CATEGORICAL_FEATURES[0]]==target]
 
@@ -53,7 +56,6 @@ def run(dataset, pipeline, experiment_ID):
 
 
 
-
                 X_source_set_train, X_source_set_test, y_source_set_train, y_source_set_test = train_test_split(X_source_set, y_source_set,
                                                                                                                 stratify = y_source_set,
                                                                                                                 test_size = 0.2,
@@ -62,37 +64,34 @@ def run(dataset, pipeline, experiment_ID):
 
                 pipeline.fit(X_source_set_train, y_source_set_train)
                 y_predict=pipeline.predict(X_source_set_train)
-                eval_and_log_metrics("Train", y_source_set_train, y_predict)
+                eval_and_log_metrics("CP_Source_Train", y_source_set_train, y_predict)
 
                 y_predict=pipeline.predict(X_source_set_test)
-                validation_utils.val_and_log_metrics(y_source_set_test, y_predict,'Source')
+                validation_utils.val_and_log_metrics(y_source_set_test, y_predict,'CP_Source_Test')
 
                 y_predict=pipeline.predict(X_target_set)
-                validation_utils.val_and_log_metrics(y_target_set,y_predict,'Target')
+                validation_utils.val_and_log_metrics(y_target_set,y_predict,'CP_Target')
 
                 #Explenability
-                df=calculate_distribution(source_set,target_set)
-                df.to_csv('Distribution Source-Target.csv',index=False)
-                mlflow.log_artifact('Distribution Source-Target.csv','Distribution')
-                os.remove('Distribution Source-Target.csv')
+                log_distribution(source_set,'Distribution Source.csv','Distribution')
+                log_distribution(target_set,'Distribution Target.csv','Distribution')
+                log_distribution(source_set.loc[source_set[col.TARGET]==0],
+                                 'Distribution Non Flaky Test Source.csv',
+                                 'Distribution')
+                log_distribution(target_set.loc[target_set[col.TARGET]==0],
+                                 'Distribution Non Flaky Test Target.csv',
+                                 'Distribution')
+                log_distribution(source_set.loc[source_set[col.TARGET]==1],
+                                 'Distribution Flaky Test Source.csv',
+                                 'Distribution')
+                log_distribution(target_set.loc[target_set[col.TARGET]==1],
+                                 'Distribution Flaky Test Target.csv',
+                                 'Distribution')
+                log_featureImportance(pipeline.get_params('steps')['model'],
+                                      'Feature Importances Classifier.csv',
+                                      'Feature Importances Classifier')
 
-                df=calculate_distribution(source_set.loc[source_set[col.TARGET]==0],
-                                          target_set.loc[target_set[col.TARGET]==0])
-                df.to_csv('Distribution Non Flaky Test Source-Target.csv',index=False)
-                mlflow.log_artifact('Distribution Non Flaky Test Source-Target.csv','Distribution')
-                os.remove('Distribution Non Flaky Test Source-Target.csv')
 
-                df=calculate_distribution(source_set.loc[source_set[col.TARGET]==1],
-                                          target_set.loc[target_set[col.TARGET]==1])
-                df.to_csv('Distribution Flaky Test Source-Target.csv',index=False)
-                mlflow.log_artifact('Distribution Flaky Test Source-Target.csv','Distribution')
-                os.remove('Distribution Flaky Test Source-Target.csv')
-
-
-                fi=features_importance(pipeline.get_params('steps')['model'])
-                fi.to_csv('Feature Importances Classifier.csv',index=False)
-                mlflow.log_artifact('Feature Importances Classifier.csv','Feature Importances Classifier')
-                os.remove('Feature Importances Classifier.csv')
 
 
 

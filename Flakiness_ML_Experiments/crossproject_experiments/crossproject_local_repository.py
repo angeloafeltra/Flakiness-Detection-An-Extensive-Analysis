@@ -1,4 +1,8 @@
 import sys
+
+from imblearn.pipeline import Pipeline
+from sklearn.preprocessing import MinMaxScaler
+
 import utils.columns as col
 import mlflow
 import utils.validation_utils as validation_utils
@@ -15,8 +19,10 @@ def euclidean(point, data):
 def run(dataset, pipeline, experiment_ID):
 
     list_project=dataset['nameProject'].unique()
+    pipeline = Pipeline(steps = [('scaler',MinMaxScaler()),
+                                 ("model", pipeline.get_params('steps')['model'])])
 
-    with mlflow.start_run(run_name='CrossProject_LocalModel_Repository',experiment_id= experiment_ID) as father_run:
+    with mlflow.start_run(run_name='CrossProject_LocalModel_Repository (CPLMR)',experiment_id= experiment_ID) as father_run:
 
         for target in list_project:
             print(target)
@@ -29,7 +35,8 @@ def run(dataset, pipeline, experiment_ID):
                 print("La repository non rispetta i criteri")
                 continue
 
-            with mlflow.start_run(run_name=target,experiment_id=experiment_ID,nested=True) as child_run:
+            repository_name=target.split('_')[0]
+            with mlflow.start_run(run_name="CPLMR_{}".format(repository_name),experiment_id=experiment_ID,nested=True) as child_run:
                 source_set=dataset.loc[dataset[col.CATEGORICAL_FEATURES[0]]!=target].reset_index(drop=True)
                 target_set=dataset.loc[dataset[col.CATEGORICAL_FEATURES[0]]==target].reset_index(drop=True)
 
@@ -63,6 +70,7 @@ def run(dataset, pipeline, experiment_ID):
 
 
 
+
                 #2. Per ogni campione identifico la repo e eseguo la prediction
                 y_predict=[]
                 indexs_repo=[]
@@ -75,7 +83,7 @@ def run(dataset, pipeline, experiment_ID):
                     y_predict.append(local_model['Local pipeline'][index_repo].predict(target_instance)[0])
 
 
-                validation_utils.val_and_log_metrics(y_target_set,y_predict,'Target')
+                validation_utils.val_and_log_metrics(y_target_set,y_predict,'CP_Target')
                 df=pd.DataFrame()
                 df['True Lable']=y_target_set
                 df['Predict Lable']=y_predict

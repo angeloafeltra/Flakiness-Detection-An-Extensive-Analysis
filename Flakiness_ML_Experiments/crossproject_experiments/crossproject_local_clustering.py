@@ -1,6 +1,7 @@
 import sys
 
 import pandas as pd
+from sklearn.preprocessing import MinMaxScaler
 
 import utils.columns as col
 import mlflow
@@ -10,15 +11,20 @@ from sklearn.cluster import KMeans
 import copy
 import numpy as np
 from sklearn.model_selection import train_test_split
-from utils.crossproject_utils import calculate_distribution, features_importance
 import os
 from utils.eval_utils import eval_and_log_metrics
+from utils.explenability_utils import log_distribution,log_featureImportance
+from imblearn.pipeline import Pipeline
+
 
 def run(dataset, pipeline, experiment_ID):
 
+    pipeline = Pipeline(steps = [('scaler',MinMaxScaler()),
+                                ("model", pipeline.get_params('steps')['model'])])
+
     list_project=dataset['nameProject'].unique()
 
-    with mlflow.start_run(run_name='CrossProject_LocalModel_Clustering',experiment_id= experiment_ID) as father_run:
+    with mlflow.start_run(run_name='CrossProject_LocalModel_Clustering (CPLMC)',experiment_id= experiment_ID) as father_run:
 
         for target in list_project:
             print(target)
@@ -32,7 +38,8 @@ def run(dataset, pipeline, experiment_ID):
                 print("La repository non rispetta i criteri")
                 continue
 
-            with mlflow.start_run(run_name=target,experiment_id=experiment_ID,nested=True) as child_run:
+            repository_name=target.split('_')[0]
+            with mlflow.start_run(run_name="CPLMC_{}".format(repository_name),experiment_id=experiment_ID,nested=True) as child_run:
 
                 source_set=dataset.loc[dataset[col.CATEGORICAL_FEATURES[0]]!=target].reset_index(drop=True)
                 target_set=dataset.loc[dataset[col.CATEGORICAL_FEATURES[0]]==target].reset_index(drop=True)
@@ -101,20 +108,23 @@ def run(dataset, pipeline, experiment_ID):
                                                              clusterTF,
                                                              clusterTNF))
 
+                    if clusterTF>=2:
+                        X_cluster_train, X_cluster_test, y_cluster_train, y_cluster_test = train_test_split(X_cluster_set, y_cluster_set,
+                                                                                                            stratify = y_cluster_set,
+                                                                                                            test_size = 0.2,
+                                                                                                            random_state = 42)
 
-                    X_cluster_train, X_cluster_test, y_cluster_train, y_cluster_test = train_test_split(X_cluster_set, y_cluster_set,
-                                                                                                        stratify = y_cluster_set,
-                                                                                                        test_size = 0.2,
-                                                                                                        random_state = 42)
 
+                        local_pip=copy.copy(pipeline)
+                        local_pip.fit(X_cluster_train,y_cluster_train)
+                        y_predict=local_pip.predict(X_cluster_train)
+                        eval_and_log_metrics("Cluster {}_Train".format(i),y_cluster_train,y_predict)
 
-                    local_pip=copy.copy(pipeline)
-                    local_pip.fit(X_cluster_train,y_cluster_train)
-                    y_predict=local_pip.predict(X_cluster_train)
-                    eval_and_log_metrics("Cluster {} ".format(i),y_cluster_train,y_predict)
-
-                    y_predict=local_pip.predict(X_cluster_test)
-                    validation_utils.val_and_log_metrics(y_cluster_test,y_predict,'Cluster {}'.format(i))
+                        y_predict=local_pip.predict(X_cluster_test)
+                        validation_utils.val_and_log_metrics(y_cluster_test,y_predict,'Cluster {}_Test'.format(i))
+                    else:
+                        local_pip=copy.copy(pipeline)
+                        local_pip.fit(X_cluster_set,y_cluster_set)
 
                     local_model['Index_Cluster'].append(i)
                     local_model['X_cluster'].append(X_cluster_set)
@@ -123,28 +133,16 @@ def run(dataset, pipeline, experiment_ID):
 
                     #Explenability Cluster
                     cluster_set=pd.concat([X_cluster_set, y_cluster_set], axis=1)
-                    df=calculate_distribution(cluster_set,target_set)
-                    df.to_csv('Distribution Cluster {}-Target.csv'.format(i),index=False)
-                    mlflow.log_artifact('Distribution Cluster {}-Target.csv'.format(i),'Distribution')
-                    os.remove('Distribution Cluster {}-Target.csv'.format(i))
-
-                    df=calculate_distribution(cluster_set.loc[cluster_set[col.TARGET]==0],
-                                              target_set.loc[target_set[col.TARGET]==0])
-                    df.to_csv('Distribution Non Flaky Test Cluster {}-Target.csv'.format(i),index=False)
-                    mlflow.log_artifact('Distribution Non Flaky Test Cluster {}-Target.csv'.format(i),'Distribution')
-                    os.remove('Distribution Non Flaky Test Cluster {}-Target.csv'.format(i))
-
-                    df=calculate_distribution(cluster_set.loc[cluster_set[col.TARGET]==1],
-                                              target_set.loc[target_set[col.TARGET]==1])
-                    df.to_csv('Distribution Flaky Test Cluster {}-Target.csv'.format(i),index=False)
-                    mlflow.log_artifact('Distribution Flaky Test Cluster {}-Target.csv'.format(i),'Distribution')
-                    os.remove('Distribution Flaky Test Cluster {}-Target.csv'.format(i))
-
-
-                    fi=features_importance(local_pip.get_params('steps')['model'])
-                    fi.to_csv('Feature Importances Classifier Cluster {}.csv'.format(i),index=False)
-                    mlflow.log_artifact('Feature Importances Classifier Cluster {}.csv'.format(i),'Feature Importances Classifier')
-                    os.remove('Feature Importances Classifier Cluster {}.csv'.format(i))
+                    log_distribution(cluster_set,'Distribution Cluster {}.csv'.format(i),'Distribution')
+                    log_distribution(cluster_set.loc[cluster_set[col.TARGET]==0],
+                                     'Distribution Non Flaky Test Cluster {}.csv'.format(i),
+                                     'Distribution')
+                    log_distribution(cluster_set.loc[cluster_set[col.TARGET]==1],
+                                     'Distribution Flaky Test Cluster {}.csv'.format(i),
+                                     'Distribution')
+                    log_featureImportance(local_pip.get_params('steps')['model'],
+                                          'Feature Importances Classifier Cluster {}.csv'.format(i),
+                                          'Feature Importances Classifier')
 
 
                 #3. Per ogni campione identifico il cluster d'appartenenza e eseguo la prediction
@@ -159,7 +157,7 @@ def run(dataset, pipeline, experiment_ID):
                     y_predict.append(local_pip.predict(X_target_instance)[0])
 
 
-                validation_utils.val_and_log_metrics(y_target_set,y_predict,'Target')
+                validation_utils.val_and_log_metrics(y_target_set,y_predict,'CP_Target')
 
                 df=pd.DataFrame()
                 df['True Lable']=y_target_set
@@ -170,6 +168,14 @@ def run(dataset, pipeline, experiment_ID):
                 os.remove('Target Predict Log.csv')
 
 
+
+                log_distribution(target_set, 'Distribution Target.csv', 'Distribution')
+                log_distribution(target_set.loc[target_set[col.TARGET]==0],
+                                 'Distribution Non Flaky Test Target.csv'.format(i),
+                                 'Distribution')
+                log_distribution(target_set.loc[target_set[col.TARGET]==1],
+                                 'Distribution Flaky Test Target.csv'.format(i),
+                                 'Distribution')
 
 
 if __name__ == "__main__":

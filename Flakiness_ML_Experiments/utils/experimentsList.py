@@ -22,9 +22,12 @@ import crossproject_experiments.crossproject_one_source as crossproject_one_sour
 import crossproject_experiments.crossproject_burakfilter as burakfilter
 import crossproject_experiments.crossproject_local_clustering as local_clustering
 import crossproject_experiments.crossproject_local_repository as local_repository
-import crossproject_experiments.crossproject_NSGRT as crossproject_NSGRT
+import crossproject_experiments.crossproject_TRAdaBoost as TRAdaBoost
+import crossproject_experiments.crossproject_CORAL as CORAL
+import crossproject_experiments.crossprojet_IG_SM_FS_TCA as IG_SM_FS
+import crossproject_experiments.crossproject_TransferForest as TransferForest
 import crossproject_experiments.crossproject_TCA as TCA
-import crossproject_experiments.crossprojet_MIC_SM_FS as MIC_SM_FS
+
 
 
 from sklearn.neighbors import KNeighborsClassifier
@@ -60,7 +63,7 @@ EXPERIMENTS = [
 
 CLASSIFICATORI = [
     KNeighborsClassifier(),
-    SVC(kernel='rbf', class_weight='balanced', random_state=42),
+    #SVC(kernel='rbf', class_weight='balanced', random_state=42),
     LogisticRegression(class_weight='balanced', random_state=42),
     DecisionTreeClassifier(class_weight='balanced', random_state=42),
     RandomForestClassifier(class_weight='balanced', random_state=42),
@@ -119,10 +122,11 @@ TUNING = [
 ]
 
 CROSS_PROJECT_EXPERIMENT=[
-    (crossproject_classic, 'crossproject_classic'),
-    (burakfilter, 'burak_filter'),
-    (local_clustering, 'localmodel_clustering'),
-    (local_repository, 'localmodel_repository'),
-    (TCA, 'TCA'),
-    (MIC_SM_FS, 'MIC_SM_FS')
+    (crossproject_classic, 'CPC'),
+    (burakfilter, 'CPBF'),
+    (local_clustering, 'CPLMC'),
+    (local_repository, 'CPLMR'),
+    (TCA, 'CPTCA'),
+    (IG_SM_FS, 'CPIG_SM_FS_TCA'),
+    (TRAdaBoost, 'CPTRAda'),
 ]
