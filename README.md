@@ -8,10 +8,10 @@ Con tale lavoro cerchiamo di fare l’esatto opposto, ovvero utilizzare un appro
 
 
 
-Per poter replicare il seguente lavoro bisogna eseguire i seguenti passi:
+Per replicare il nostro lavoro, seguire i seguenti passi:
 
 ## Generazione Dataset
-I dataset da noi utilizzati possono essere generati nuovamente utilizzando la lista di test flaky presenti nella cartella ListTestFlaky.
+I dataset utilizzati possono essere rigenerati utilizzando l'elenco dei test flaky presenti nella cartella "ListTestFlaky".
 
 ### Metodo 1 (non richiede l'utilizzo di Docker)
 1. Clonare la repository git
@@ -29,19 +29,18 @@ I dataset da noi utilizzati possono essere generati nuovamente utilizzando la li
 6. Eseguire il comando: python main.py [nome_csv_listaTestFlaky] [nome_dataset_da_generare]
 7. Al termine della generazione del dataset eseguire il comando: docker-compose cp repo_miner:/spazioCondiviso/Dataset/[nome_dataset_da_generare].csv [path_local_folder]
 
-E consigliabile utilizzare Docker in quanto con windows si potrebbero avere degli errori durante la fase di clone data la creazione di cartelle con un nome troppo lungo.
-
+Si consiglia l'uso di Docker, poiché potrebbero verificarsi errori durante la clonazione in Windows a causa della creazione di cartelle con nomi troppo lunghi.
 
 
 ## Dataset Analysis
-Dopo la generazione dei vari dataset utilizzando il file Data_Analysis.Rmd è possibile eseguire una fase di data cleaning per miglioare la qualità dei dataset nella quale verrano eseguiti i seguenti passaggi:
+Dopo la generazione dei vari dataset, è possibile eseguire una fase di pulizia dei dati per migliorare la qualità dei dataset. In questa fase vengono eseguiti i seguenti passaggi:
 1. Rimozione repository senza test flaky
 2. Mantenimento di un solo commit per repository (il commit con più test flaky)
 3. Rimozione test setup e teardown
 4. Rimozione duplicati
 5. Rimozione rumore
 
-Tuttavia per eseguire tale analisi all'interno di tale file Data_Analysis.Rmd deve essere specificato il path ed il nome del dataset da analizzare
+Tuttavia, per eseguire questa analisi, è necessario specificare il percorso e il nome del dataset da analizzare all'interno del file Data_Analysis.Rmd.
 
 ## Machine Learning Experiments 
 
