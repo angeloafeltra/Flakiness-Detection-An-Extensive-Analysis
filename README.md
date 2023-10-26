@@ -11,7 +11,7 @@ Con tale lavoro cerchiamo di fare l’esatto opposto, ovvero utilizzare un appro
 Per poter replicare il seguente lavoro bisogna eseguire i seguenti passi:
 
 ## Generazione Dataset
-Per replicare i nostri dataset utilizzare la lista di test flaky presenti nella cartella ListaTestFlaky per poter generare i relativi dataset.
+I dataset da noi utilizzati possono essere generati nuovamente utilizzando la lista di test flaky presenti nella cartella ListTestFlaky.
 
 ### Metodo 1 (non richiede l'utilizzo di Docker)
 1. Clonare la repository git
@@ -29,7 +29,7 @@ Per replicare i nostri dataset utilizzare la lista di test flaky presenti nella 
 6. Eseguire il comando: python main.py [nome_csv_listaTestFlaky] [nome_dataset_da_generare]
 7. Al termine della generazione del dataset eseguire il comando: docker-compose cp repo_miner:/spazioCondiviso/Dataset/[nome_dataset_da_generare].csv [path_local_folder]
 
-E consigliabile utilizzare Docker in quanto con windows si potrebbero avere degli errori durante la fase di clone, data la creazione di cartelle con un nome troppo lungo.
+E consigliabile utilizzare Docker in quanto con windows si potrebbero avere degli errori durante la fase di clone data la creazione di cartelle con un nome troppo lungo.
 
 
 
@@ -39,12 +39,9 @@ Dopo la generazione dei vari dataset utilizzando il file Data_Analysis.Rmd è po
 2. Mantenimento di un solo commit per repository (il commit con più test flaky)
 3. Rimozione test setup e teardown
 4. Rimozione duplicati
-5. Rimozione rumore (test non flaky con la stessa metrica dei test flaky)
+5. Rimozione rumore
 
 Tuttavia per eseguire tale analisi all'interno di tale file Data_Analysis.Rmd deve essere specificato il path ed il nome del dataset da analizzare
 
 ## Machine Learning Experiments 
 
-## With-in Evaluated
-
-## Cross-project Evaluated
